@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mage City, a RPG experiment with Elm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="elm.js"></script>
+  <style type="text/css">
+    body {
+        font: normal 100%/1.6em -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        color: #ccc;
+        background: #222;
+        padding: 3.2em;
+        margin: 0 auto;
+        text-align: center;
+        max-width: 60em;
+    }
+    a {
+        color: #5296ba;
+    }
+    .lead {
+        font-size: 21px;
+    }
+  </style>
+</head>
+<body>
+    <img src="./images/mage-city-logo.png" width="600" height="160" alt="Mage City">
+
+    <p class="lead">Mage City is an ongoing learning experiment aiming to recreate the aesthetic and some gameplay elements
+      of 90's Nintendo RPG action games like <a href="https://en.wikipedia.org/wiki/Secret_of_Mana"><i>Secret of Mana</i></a>.</p>
+
+    <div id="main"></div>
+
+    <p>This is a live demo. Use the arrows keys &uarr; &rarr; &darr; &larr; to wander around. </p>
+
+    <p>Mage City is written in <a href="http://elm-lang.org">Elm</a> and uses WebGL for graphic rendering. Source code and documentation are <a href="https://github.com/passiomatic/mage-city">available on GitHub</a>.</p>
+
+<script>
+    var node = document.getElementById('main');
+    var app = Elm.Main.embed(node);
+/*    Elm.Main.fullscreen({
+      randomSeed: Date.now(),
+      devicePixelRatio: window.devicePixelRatio
+    });
+*/
+</script>
+</body>
+</html>
