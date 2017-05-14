@@ -1,6 +1,8 @@
 Mage City is an ongoing learning experiment aiming to recreate the aesthetic and some gameplay elements of 90's Nintendo RPG action games like [_Secret of Mana_][1].
 
-[Play it here][home].
+[Try it here][home].
+
+![Mage City screenshot](./screenshot.png)
 
 ## Tiled integration
 
