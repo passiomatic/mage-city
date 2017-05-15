@@ -177,6 +177,11 @@ void main () {
     vec2 spritePosition = (spriteOffset + delta) / atlasSize;
 
     gl_FragColor = texture2D(atlas, spritePosition);
+
+    // Discard the transparent color
+    if (gl_FragColor.a == 0.0) {
+      discard;
+    }
 }
 |]
 
