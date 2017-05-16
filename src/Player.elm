@@ -62,7 +62,7 @@ walkSpeed =
 
 -- Player Z position in the world
 zPosition =
-    0.45
+    0.35
 
 -- Smaller than sprite size
 collisionSize =
