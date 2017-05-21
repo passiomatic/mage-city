@@ -19,15 +19,6 @@ import Render exposing (makeTransform, toEntity, Uniform(..))
 
 import Collision exposing (Side(..))
 
-import Helpers as Helpers exposing (..)
-
--- TODO
--- https://groups.google.com/d/msg/elm-discuss/AaL8iLjhEdU/e4A608rtAQAJ
---type alias Positioned = { position: Vec2 }
--- type GameEntity =
---    Player Positioned
---  | Enemy Positioned
---  | Item Positioned Textured ????
 
 atlasAsset =
     ("Player", "images/player.png")

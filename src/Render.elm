@@ -207,13 +207,14 @@ toHtml (w, h) entities =
 
 
 toWebGL : (Int, Int) -> List Entity -> Html msg
-toWebGL size entities =
+toWebGL (w, h) entities =
     -- Just wrap WebGL view inside a div and call the final renderer
     Html.div
         [ Attr.id "mage-city"
-        -- , Attr.style
-        --     [ ( "width", toString w ++ "px" )
-        --     , ( "height", toString h ++ "px" )
-        --     ]
+        , Attr.style
+            [ ( "width", toString w ++ "px" )
+            , ( "height", toString h ++ "px" )
+            , ( "margin", "auto" )
+            ]
         ]
-        [ toHtml size entities ]
+        [ toHtml (w, h) entities ]
