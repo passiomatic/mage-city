@@ -18,15 +18,11 @@ module Levels.%s exposing (..)
 
 import Color exposing (rgb)
 import Math.Vector2 exposing (vec2)
-import Tiled
 import Collision exposing (rectangle)
 
 """
 
-
 SRC_DIR = 'src/Levels'
-
-#INDENT = " " * 4
 
 # Tiled render order
 RIGHT_DOWN, RIGHT_UP, LEFT_DOWN, LEFT_UP = "right-down", "right-up", "left-down", "left-up"
@@ -133,26 +129,25 @@ def serialize_tile_layer(level, layer):
     w = layer['width'] * level['tilewidth']
     h = layer['height'] * level['tileheight']
 
+    # Calculate absolute position form offset
     offset_x = layer['offsetx'] if 'offsetx' in layer else 0
     offset_y = layer['offsety'] if 'offsety' in layer else 0
-
-    # Calculate abs. position
     x = offset_x + w / 2
     y = h / 2 - offset_y
 
     name = layer['name']
-    #filename = get_slug(level['name'], name, "lut.png")
 
     # Save LUT data
-    layer['lut'] = encode_tile_data((layer['width'], layer['height']), level['tileset_size'], layer['data'])
+    layer['lut'] = encode_tile_data(
+        (layer['width'], layer['height']),
+        level['tileset_size'], layer['data'])
 
     fields = {
         "name"      : name,
         "size"      : Vec2((w, h)),
+        "position"  : Vec2((x, y)),
         # TODO "opacity"   : layer['opacity'],
         "visible"   : layer['visible'],
-        #"offset"    : Vec2((offset_x, offset_y)),
-        "position"  : Vec2((x, y)),
         "lutName" : "%s.%s" % (level['name'], name)
     }
     return serialize_record(fields)
@@ -160,6 +155,7 @@ def serialize_tile_layer(level, layer):
 
 def serialize_obstacle_layer(level, layer):
 
+    level_w = level['width'] * level['tilewidth']
     level_h = level['height'] * level['tileheight']
 
     def convert_object(object):
@@ -172,7 +168,8 @@ def serialize_obstacle_layer(level, layer):
             # Flip Y
             cy = level_h - object['y'] - h / 2
         else:
-            raise ValueError("Unsupported rendering order" + order)
+            raise ValueError("Unsupported rendering order " + order)
+        #convert_position(level['renderorder'], (level_w, level_h), object['x'], object['y'])
 
         object['rect'] = Rectangle((cx, cy, w, h))
 
@@ -191,36 +188,43 @@ def serialize_obstacle_layer(level, layer):
                 map(convert_object, layer['objects']))
     return serialize_list(fields)
 
+def serialize_spawns_layer(level, layer):
 
-# def serialize_object(object):
-#
-#     fields = {
-#         "name"      : object['name'],
-#         #"id"        : object['id'],
-#         "x"         : object['x'],
-#         "y"         : object['y'],
-#         "width"     : object['width'],
-#         "height"    : object['height'],
-#         #"rotation"  : object['rotation'],
-#         #"visible"   : object['visible']
-#
-#         # TODO Add circle, polygon support
-#     }
-#     return serialize_record(fields)
+    level_w = level['width'] * level['tilewidth']
+    level_h = level['height'] * level['tileheight']
 
-# def serialize_tileset(tileset):
-#     fields = {
-#         "name"      : tileset['name'],
-#         "startId"   : tileset['firstgid'],
-#         "image"     : tileset['image'],
-#         "tileCount" : tileset['tilecount'],
-#         "width"     : tileset['imagewidth'],
-#         "height"    : tileset['imageheight'],
-#     }
-#     return serialize_record(fields)
+    def convert_object(object):
+
+        new_object = {}
+
+        # Coordinate conversion
+        if level['renderorder'] == RIGHT_DOWN:
+            # Find center
+            w = object['width']
+            h = object['height']
+            cx = object['x'] + w / 2
+            # Flip Y
+            cy = level_h - object['y'] - h / 2
+        else:
+            raise ValueError("Unsupported rendering order " + order)
+
+        new_object['position']  = Vec2((cx, cy))
+        new_object['size']      = Vec2((w, h))
+        new_object['type_']     = object['type']
+        new_object['name']      = object['name']
+        new_object['id']        = object['id']
+
+        return new_object
+
+    fields = map(serialize_record,
+                map(convert_object, layer['objects']))
+    return serialize_list(fields)
+
 
 def serialize_lut(level, layer):
-    lut_data = encode_tile_data((layer['width'], layer['height']), level['tileset_size'], layer['data'])
+    lut_data = encode_tile_data((layer['width'], layer['height']),
+        level['tileset_size'],
+        layer['data'])
     asset = "%s.%s" % (level['name'], layer['name']), lut_data
     return serialize_tuple(asset)
 
@@ -239,26 +243,24 @@ def serialize_level(level):
     # Pass level data first
     serialize_tile_layer_       = partial(serialize_tile_layer, level)
     serialize_obstacle_layer_   = partial(serialize_obstacle_layer, level)
+    serialize_spawns_layer_     = partial(serialize_spawns_layer, level)
     serialize_lut_              = partial(serialize_lut, level)
 
-    # Extract relevant object groups so they are directly accessible via
-    # level.groupName label. E.g.:
-    #
-    # import Levels.MageCity as City
-    # List.map (\obstacle -> obstacle.width ...) City.level.obstacles
+    # Extract relevant object groups so they are directly accessible
+    #   via the level.groupName label.
     obstacles = filter(is_named_object_group("Obstacles"),
+        filter(is_object_layer, level['layers']))
+
+    spawns = filter(is_named_object_group("Spawns"),
         filter(is_object_layer, level['layers']))
 
     fields = {
         "name"          : level['name'],
         "background"    : Color(level['backgroundcolor'] if 'backgroundcolor' in level else '#000000'),
-        #"tileWidth"     : level['tilewidth'],
-        #"tileHeight"    : level['tileheight'],
         "layers"        : map(serialize_tile_layer_, filter(is_tile_layer, level['layers'])),
-        #"tileSets"      : map(serialize_tileset,level['tilesets']),        # FIXME Hardcoded
-        #"renderOrder"   : Identity("Tiled.RightDown"),
         "assets"        : map(serialize_lut_, filter(is_tile_layer, level['layers'])),
-        "obstacles"     : Identity(serialize_obstacle_layer_(obstacles[0]))
+        "obstacles"     : Identity(serialize_obstacle_layer_(obstacles[0])),
+        "spawns"        : Identity(serialize_spawns_layer_(spawns[0]))
     }
     return serialize_record(fields)
 
@@ -277,14 +279,15 @@ def serialize(level):
     return (BOILERPLATE % level['name']) +\
         ("level = %s" % serialize_level(level))
 
-# Coordinate conversion
-
+# Convert top left coordinates (used in right-down renner order)
+#  to midpoint coordinates
 # def convert_position(order, reference_size, x, y):
 #     w, h = reference_size
 #     if order == RIGHT_DOWN:
-#         return x, h - y
+#         # Return midpoint x and midpoint Y with flipped axis
+#         return x + w / 2, h - y - h / 2
 #     else:
-#         raise ValueError("Unsupported rendering order" + order)
+#         raise ValueError("Unsupported rendering order " + order)
 
 # See http://blog.tojicode.com/2012/07/sprite-tile-maps-on-gpu.html
 def encode_tile_data(layer_size, tileset_size, data):
@@ -309,14 +312,6 @@ def encode_tile_data(layer_size, tileset_size, data):
     img.save(f, 'PNG')
     return 'data:image/png;base64,' + base64.b64encode(f.getvalue())
 
-# Naive slug generator, e.g. "City 1" becomes "city-1"
-def get_slug(*words):
-    # def transfomer(v):
-    #     return value.lower().replace(" ", "-")
-
-    return "-".join(
-        ["%s" % v.lower() for v in words]
-    )
 
 # Entry point
 

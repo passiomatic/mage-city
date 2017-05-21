@@ -13,7 +13,8 @@ import WebGL.Texture as Texture exposing (Texture)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4)
-import Vector2Extra as Vector2 exposing (fromInt)
+import Vector2Extra as Vector2
+import Vector3Extra as Vector3
 
 import Color exposing (Color)
 import Dict exposing (Dict)
@@ -21,7 +22,6 @@ import Resources as Resources exposing (Resources, Asset)
 import Render exposing (makeTransform, toEntity, Uniform(..))
 
 import Collision
-import Helpers exposing (midpoint, toVec3, colorToVec3)
 
 
 -- A tile is 32x32 pixels
@@ -34,7 +34,6 @@ tileSet : TileSet
 tileSet =
     { name = "City"
     , url = "images/mage-city-tileset.png"
-    , size = vec2 256 2048
     }
 
 
@@ -43,31 +42,30 @@ type alias Level =
     , background : Color
     , assets : List Asset
     , layers : List Layer
-    , obstacles: List Obstacle
-        }
+    , obstacles : List Obstacle
+    , spawns : List Spawn
+    }
 
 
 type alias TileSet =
     { url : String
     , name : String
-    , size : Vec2
     }
-
--- TODO "draworder":"topdown"
--- type alias Object =
---     { name : String
---     --, visible : Bool
---     , width : Float
---     , height : Float
---     , x : Float
---     , y : Float
---     }
 
 
 type alias Obstacle =
     { name : String
     , id : Int
     , rect : Collision.Rectangle
+    }
+
+-- A entity placeholder in the level
+type alias Spawn =
+    { type_ : String
+    , name : String
+    , id : Int
+    , position : Vec2
+    , size : Vec2
     }
 
 
@@ -98,7 +96,7 @@ renderLevel resources cameraProj level =
 renderLayer : Resources -> Mat4 -> Layer -> Float -> Entity
 renderLayer resources cameraProj layer zPosition =
     let
-        position = toVec3 layer.position zPosition
+        position = Vector3.fromVec2 layer.position zPosition
 
         atlas =
             Resources.getTexture tileSet.name resources
@@ -106,14 +104,15 @@ renderLayer resources cameraProj layer zPosition =
         lut =
             Resources.getTexture layer.lutName resources
 
-        (atlasW, atlasH) = Texture.size atlas
+        (atlasW, atlasH) =
+            Texture.size atlas
 
         uniforms =
             { transform = makeTransform position layer.size 0 (0.5, 0.5)
             , cameraProj = cameraProj
             , atlas = atlas
             , lut = lut
-            , atlasSize = fromInt atlasW atlasH
+            , atlasSize = Vector2.fromInt atlasW atlasH
             , layerSize = layer.size
             , tileSize = tileSize
             }
@@ -138,12 +137,13 @@ renderObstacle cameraProj rect zPosition =
         (position, size) =
             Collision.toTuple rect
 
-        position_ = toVec3 position zPosition
+        position_ =
+            Vector3.fromVec2 position zPosition
 
         uniforms =
             { transform = makeTransform position_ size 0 (0.5, 0.5)
             , cameraProj = cameraProj
-            , color = colorToVec3 Color.blue
+            , color = Vector3.fromColor Color.blue
             }
     in
         toEntity (ColoredRect uniforms)

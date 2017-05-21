@@ -18,13 +18,13 @@ module Render exposing
 import Math.Matrix4 as Matrix4 exposing (Mat4)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
+import Vector3Extra as Vector3
 
 import WebGL as WebGL exposing (Texture, Mesh, Entity, Option)
 import WebGL.Settings.Blend as Blend
 import WebGL.Settings.DepthTest as DepthTest
 
 import Shaders
-import Helpers as Helpers exposing (..)
 
 import Html exposing (Html, Attribute)
 import Html.Attributes as Attr
@@ -67,7 +67,7 @@ makeTransform position size rotation (pivotX, pivotY) =
             Matrix4.makeRotate rotation (vec3 0 0 1)
 
         scale =
-            Matrix4.makeScale (toVec3 size 1)
+            Matrix4.makeScale (Vector3.fromVec2 size 1)
 
         pivot =
             Matrix4.makeTranslate (vec3 -pivotX -pivotY 0)
@@ -76,6 +76,12 @@ makeTransform position size rotation (pivotX, pivotY) =
 
 
 -- WEBGL RENDERING
+
+-- type alias TransformationUniform a =
+--     { a
+--     | transform : Mat4
+--     , cameraProj : Mat4
+--     }
 
 type alias TexturedRectUniform =
     { transform : Mat4

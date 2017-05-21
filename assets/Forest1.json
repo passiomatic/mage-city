@@ -345,13 +345,44 @@
                  "width":96,
                  "x":16,
                  "y":280
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "width":16,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "height":32,
+         "name":"Spawns",
+         "objects":[
+                {
+                 "height":32,
+                 "id":45,
+                 "name":"Crate",
+                 "rotation":0,
+                 "type":"Crate",
+                 "visible":true,
+                 "width":32,
+                 "x":320,
+                 "y":576
                 }, 
                 {
                  "height":16,
-                 "id":44,
-                 "name":"",
+                 "id":55,
+                 "name":"ChangeLevel",
+                 "properties":
+                    {
+                     "Level":"City1"
+                    },
+                 "propertytypes":
+                    {
+                     "Level":"string"
+                    },
                  "rotation":0,
-                 "type":"",
+                 "type":"Trigger",
                  "visible":true,
                  "width":64,
                  "x":224,
@@ -364,7 +395,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":45,
+ "nextobjectid":56,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

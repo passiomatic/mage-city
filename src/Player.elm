@@ -8,7 +8,8 @@ import WebGL.Texture as Texture exposing (Texture)
 
 import Math.Vector2 as Vector2 exposing
     (Vec2, vec2, getX, getY, add, scale)
-import Vector2Extra as Vector2 exposing (fromInt)
+import Vector2Extra as Vector2
+import Vector3Extra as Vector3
 
 import Math.Matrix4 exposing (Mat4)
 
@@ -159,7 +160,7 @@ walk keys player =
             Keyboard.arrows keys
     in
         { player
-            | velocity = scale walkSpeed (fromInt x y)
+            | velocity = scale walkSpeed (Vector2.fromInt x y)
             , direction = direction
         }
 
@@ -190,11 +191,14 @@ render resources time cameraProj ({ size, direction, position } as player) =
                 _ ->
                     idleFrames
 
-        position_ = toVec3 position zPosition
+        position_ =
+            Vector3.fromVec2 position zPosition
 
-        atlas = Resources.getTexture (Tuple.first atlasAsset) resources
+        atlas =
+            Resources.getTexture (Tuple.first atlasAsset) resources
 
-        (atlasW, atlasH) = Texture.size atlas
+        (atlasW, atlasH) =
+            Texture.size atlas
 
         uniforms =
             { transform = makeTransform position_ size 0 (0.5, 0.5)
@@ -205,7 +209,7 @@ render resources time cameraProj ({ size, direction, position } as player) =
             , duration = duration
             , time = time
             , spriteSize = size
-            , atlasSize = fromInt atlasW atlasH
+            , atlasSize = Vector2.fromInt atlasW atlasH
             }
     in
         toEntity (AnimatedRect uniforms)

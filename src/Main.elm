@@ -8,13 +8,14 @@ import Keyboard.Extra
 import Color exposing (Color)
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
-import Dict exposing (Dict)
+import WebGL.Texture as Texture exposing (Texture)
 import Camera
 --import WebGLView
 import Render
 import Player exposing (Player)
 import Tiled exposing (Level, tileSet, Obstacle)
 import Camera exposing (Camera)
+import GameEntity exposing (GameEntity)
 import Levels.Forest1 as Forest1
 
 
@@ -49,26 +50,16 @@ type Msg
 
 
 
--- MODEL
--- Just a list of list of tiles for now :)
---type alias Scene = List Renderable
--- { layers:
--- --, player : Player
--- -- entities: List Entity
--- }
-
-
 type alias Model =
     { player : Player
+    , gameEntities: List GameEntity
     , resources : Resources
     , keys : Keyboard.Extra.State
     , time : Float
     , viewport : Vec2
     , camera : Camera
-    , level :
-        Level
-        --, scene : Scene
-    , status : GameState
+    , level : Level
+    , state : GameState
     }
 
 
@@ -80,14 +71,14 @@ type GameState
 init : ( Model, Cmd Msg )
 init =
     { player = Player.initialModel
+    , gameEntities = []
     , resources = Resources.initialModel
     , keys = Keyboard.Extra.initialState
     , time = 0
     , viewport = viewportSize
     , camera = Camera.fixedArea (Vector2.getX viewportSize * Vector2.getY viewportSize) (vec2 200 150)
     , level = startLevel
-        --, scene = []
-    , status = Loading
+    , state = Loading
     }
         ! [ getScreenSize
           , Cmd.map Resources (Resources.loadAssets gameAssets)
@@ -103,8 +94,8 @@ update msg model =
     case msg of
         ChangeLevel level ->
             { model
-                | -- scene = drawLevel model.resources level
-                  level = level
+                | gameEntities = spawnGameEntities model.resources level
+                , level = level
             }
                 ! []
 
@@ -128,7 +119,7 @@ update msg model =
                 if Resources.isLoadingComplete gameAssets newResources then
                     { model
                         | resources = newResources
-                        , status = Playing
+                        , state = Playing
                     }
                         -- Trigger a ChangeLevel msg
                         -- See: https://medium.com/elm-shorts/how-to-turn-a-msg-into-a-cmd-msg-in-elm-5dd095175d84
@@ -151,13 +142,17 @@ update msg model =
                     ! []
 
 
+spawnGameEntities resources level =
+    List.map (\object -> GameEntity.spawn resources object.type_ object.position object.size) level.spawns
+
+
 minDistanceFromEdge =
     70
 
 
 updateCamera : Float -> Vec2 -> Camera -> Camera
 updateCamera dt targetPosition camera =
-    Camera.follow 0.9 dt (nextCameraPosition camera.position targetPosition) camera
+    Camera.follow 0.95 dt (nextCameraPosition camera.position targetPosition) camera
 
 
 nextCameraPosition cameraPosition targetPosition =
@@ -216,6 +211,7 @@ gameAssets =
         assets =
             [ List.singleton ( tileSet.name, tileSet.url )
             , Player.assets
+            , GameEntity.assets
             ]
     in
         -- Add all the assets from levels
@@ -229,22 +225,25 @@ gameAssets =
 
 
 renderPlaying : Model -> Html msg
-renderPlaying { player, resources, time, viewport, camera, level } =
+renderPlaying { player, gameEntities, resources, time, viewport, camera, level } =
     let
         cameraProj =
             Camera.view viewport camera
 
-        scene_ =
+        renderGameEntities =
+            List.map (\gameEntity -> GameEntity.render resources time cameraProj gameEntity) gameEntities
+
+        scene =
             Tiled.renderLevel resources cameraProj level
-                -- ++ Tiled.renderObstacles resources cameraProj level
-                ++
-                    [ Player.render resources time cameraProj player ]
+                ++ renderGameEntities
+                ++ [ Player.render resources time cameraProj player ]
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =
             Vector2.scale vieportScale viewport |> Vector2.toTuple
     in
-        Render.toWebGL ( floor w, floor h ) scene_
+        Render.toWebGL ( floor w, floor h ) scene
+
 
 
 renderLoading : Model -> Html msg
@@ -254,7 +253,7 @@ renderLoading _ =
 
 view : Model -> Html msg
 view model =
-    case model.status of
+    case model.state of
         Loading ->
             renderLoading model
 
