@@ -5,17 +5,16 @@ import Task
 import AnimationFrame
 import Window
 import Keyboard.Extra
-import Color exposing (Color)
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import WebGL.Texture as Texture exposing (Texture)
-import Camera
---import WebGLView
 import Render
+import Scene
 import Player exposing (Player)
-import Tiled exposing (Level, tileSet, Obstacle)
+import Tiled exposing (Level, tileSet)
 import Camera exposing (Camera)
-import GameEntity exposing (GameEntity)
+import Object exposing (Object)
+import Crate
 import Levels.Forest1 as Forest1
 
 
@@ -49,10 +48,22 @@ type Msg
     | ChangeLevel Level
 
 
+-- type GameMsg
+--     = CollisionWith (List Int) -- Side?
+--     | NoOp
+
+
+-- MODEL
+
+
+type GameState
+    = Loading
+    | Playing
+
 
 type alias Model =
     { player : Player
-    , gameEntities: List GameEntity
+    , objects: List Object
     , resources : Resources
     , keys : Keyboard.Extra.State
     , time : Float
@@ -63,15 +74,11 @@ type alias Model =
     }
 
 
-type GameState
-    = Loading
-    | Playing
-
 
 init : ( Model, Cmd Msg )
 init =
     { player = Player.initialModel
-    , gameEntities = []
+    , objects = []
     , resources = Resources.initialModel
     , keys = Keyboard.Extra.initialState
     , time = 0
@@ -85,7 +92,6 @@ init =
           ]
 
 
-
 -- UPDATE
 
 
@@ -94,7 +100,7 @@ update msg model =
     case msg of
         ChangeLevel level ->
             { model
-                | gameEntities = spawnGameEntities model.resources level
+                | objects = Scene.spawnObjects model.resources level
                 , level = level
             }
                 ! []
@@ -105,7 +111,7 @@ update msg model =
 
         Tick dt ->
             { model
-                | player = tick dt model.keys model.level.obstacles model.player
+                | player = tick dt model.keys model.objects model.player
                 , time = dt + model.time
                 , camera = updateCamera dt model.player.position model.camera
             }
@@ -141,9 +147,6 @@ update msg model =
                 }
                     ! []
 
-
-spawnGameEntities resources level =
-    List.map (\object -> GameEntity.spawn resources object.type_ object.position object.size) level.spawns
 
 
 minDistanceFromEdge =
@@ -197,21 +200,27 @@ relativeTo referencePosition referenceSize position =
 
 
 
-tick : Float -> Keyboard.Extra.State -> List Obstacle -> Player -> Player
-tick dt keys obstacles player =
-    Player.tick dt keys obstacles player
+tick : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
+tick dt keys objects player =
+    let
+        newPlayer = Player.tick dt keys player
 
+        collidingEntities = Player.collision objects newPlayer
+    in
+        if List.isEmpty collidingEntities then
+            newPlayer --(newPlayer, NoOp)
+        else
+            player -- (newPlayer, NoOp)
+            --(newPlayer, CollisionWith (List.map (\entity -> entity.id) collidingEntities))
 
 
 -- All the game assets (images, sounds, etc.)
-
-
 gameAssets =
     let
         assets =
             [ List.singleton ( tileSet.name, tileSet.url )
             , Player.assets
-            , GameEntity.assets
+            , Crate.assets
             ]
     in
         -- Add all the assets from levels
@@ -220,22 +229,21 @@ gameAssets =
             |> List.concat
 
 
-
 -- VIEW
 
 
 renderPlaying : Model -> Html msg
-renderPlaying { player, gameEntities, resources, time, viewport, camera, level } =
+renderPlaying { player, objects, resources, time, viewport, camera, level } =
     let
         cameraProj =
             Camera.view viewport camera
 
-        renderGameEntities =
-            List.map (\gameEntity -> GameEntity.render resources time cameraProj gameEntity) gameEntities
+        renderObjects =
+            List.foldl (Scene.renderObject time cameraProj) [] objects
 
         scene =
-            Tiled.renderLevel resources cameraProj level
-                ++ renderGameEntities
+            Scene.renderLevel resources cameraProj level
+                ++ renderObjects
                 ++ [ Player.render resources time cameraProj player ]
 
         -- Calculate scaled WebGL canvas size

@@ -1,23 +1,25 @@
-module Player exposing (Player, initialModel, tick, render, assets)
+module Player exposing
+    ( Player
+    , initialModel
+    , tick
+    , render
+    , collision
+    , assets
+    )
 
 import Color
 import Keyboard.Extra as Keyboard exposing (Direction, Direction(..))
-
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
-
-import Math.Vector2 as Vector2 exposing
-    (Vec2, vec2, getX, getY, add, scale)
+import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Vector2Extra as Vector2
 import Vector3Extra as Vector3
-
 import Math.Matrix4 exposing (Mat4)
 
-import Tiled exposing (Level, Obstacle)
 import Resources as Resources exposing (Resources)
 import Render exposing (makeTransform, toEntity, Uniform(..))
-
 import Collision exposing (Side(..))
+import Object exposing (Object)
 
 
 atlasAsset =
@@ -52,11 +54,11 @@ assets =
 walkSpeed =
     75
 
--- Player Z position in the world
+{-| Player Z position in the world -}
 zPosition =
     0.35
 
--- Smaller than sprite size
+{-| Smaller than sprite size -}
 collisionSize =
     vec2 26 30
 
@@ -77,70 +79,48 @@ initialModel =
     , velocity = vec2 0 0
     }
 
+
 -- MOVEMENT
 
--- Called on every update cycle by the AnimationFrame subscription
-tick : Float -> Keyboard.State -> List Obstacle -> Player -> Player
-tick dt keys obstacles player  =
-    player
-        |> walk keys
-        |> collision obstacles
-        |> physics dt
 
-
--- Figure out next player position with s = v * dt
-physics : Float -> Player -> Player
-physics dt player =
+{-| Calculate next player position with s = v * dt
+-}
+nextPosition : Float -> Player -> Player
+nextPosition dt player =
     { player
-        | position = add player.position (scale dt player.velocity)
+        | position = Vector2.add player.position (Vector2.scale dt player.velocity)
     }
 
 
--- Check collisions against level obstacles
-collision : List Obstacle -> Player -> Player
-collision obstacles player =
+{-| Figure put the colliding objects with player
+-}
+collision : List Object -> Player -> List Object
+collision objects player =
+    let
+        playerRect = Collision.rectangle player.position collisionSize
 
-    -- Avoid collision checking is player is not moving
-    if (Vector2.length player.velocity) == 0 then
-        player
-    else
-        let
-            playerRect = Collision.rectangle player.position collisionSize
-
-            -- isColliding rect =
-            --     Collision.axisAlignedBoundingBox rect playerRect
-
-            newVelocity = List.foldl (\obstacle velocity ->
-                    --if isColliding obstacle.rect then
-                    collisionVelocity (Collision.rectangleSide playerRect obstacle.rect) player.direction velocity
-                    --else
-                    -- velocity
-                ) player.velocity obstacles
-        in
-            { player | velocity = newVelocity }
+        --isColliding : Object -> Bool
+        isColliding { position, collisionSize }  =
+            let
+                rect = Collision.rectangle position collisionSize
+            in
+                Collision.axisAlignedBoundingBox rect playerRect
+    in
+        List.filter isColliding objects
 
 
--- Set velocity to zero only if the player direction is towards the obstacle
-collisionVelocity : Maybe Side -> Direction -> Vec2 -> Vec2
-collisionVelocity side direction velocity =
-
-    case (side, direction) of
-        (Just Top, North) ->
-            Vector2.zero
-
-        (Just Right, East) ->
-            Vector2.zero
-
-        (Just Bottom, South) ->
-            Vector2.zero
-
-        (Just Left, West) ->
-            Vector2.zero
-
-        (_, _) ->
-            velocity
+{-| Called on every update cycle by the AnimationFrame subscription
+-}
+tick : Float -> Keyboard.State -> Player -> Player
+tick dt keys player  =
+    -- Figure out next player position
+    player
+        |> walk keys
+        |> nextPosition dt
 
 
+{-| Query keyboard keys to figure out walk velocity vector
+-}
 walk : Keyboard.State -> Player -> Player
 walk keys player =
     let
@@ -151,7 +131,7 @@ walk keys player =
             Keyboard.arrows keys
     in
         { player
-            | velocity = scale walkSpeed (Vector2.fromInt x y)
+            | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
             , direction = direction
         }
 

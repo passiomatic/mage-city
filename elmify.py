@@ -6,6 +6,7 @@ import struct
 import base64
 import io
 import urlparse
+import itertools
 from functools import partial
 from optparse import OptionParser, make_option
 from PIL import Image
@@ -18,7 +19,6 @@ module Levels.%s exposing (..)
 
 import Color exposing (rgb)
 import Math.Vector2 exposing (vec2)
-import Collision exposing (rectangle)
 
 """
 
@@ -47,6 +47,10 @@ def serialize_list(fields):
 def serialize_record(fields):
     l = ["%s = %s" % (k, serialize_value(v)) for (k, v) in fields.items()]
     return "{" + ", ".join(l) + "}"
+
+def serialize_ctor(type_, fields):
+    l = ["%s" % field for field in fields]
+    return type_ + " ".join(l)
 
 def serialize_tuple(values):
     l = [serialize_value(v) for v in values]
@@ -152,46 +156,16 @@ def serialize_tile_layer(level, layer):
     }
     return serialize_record(fields)
 
+def serialize_spawns_layer(level, objects):
 
-def serialize_obstacle_layer(level, layer):
-
+    # Convert size in pixels
     level_w = level['width'] * level['tilewidth']
     level_h = level['height'] * level['tileheight']
 
-    def convert_object(object):
-        # Coordinate conversion
-        if level['renderorder'] == RIGHT_DOWN:
-            # Find center
-            w = object['width']
-            h = object['height']
-            cx = object['x'] + w / 2
-            # Flip Y
-            cy = level_h - object['y'] - h / 2
-        else:
-            raise ValueError("Unsupported rendering order " + order)
-        #convert_position(level['renderorder'], (level_w, level_h), object['x'], object['y'])
+    #serialize_ctor_ = partial(serialize_ctor, "Spawn")
 
-        object['rect'] = Rectangle((cx, cy, w, h))
-
-        # Remove unused keys
-        del object['width']
-        del object['height']
-        del object['x']
-        del object['y']
-        del object['type']
-        del object['rotation']
-        del object['visible']
-
-        return object
-
-    fields = map(serialize_record,
-                map(convert_object, layer['objects']))
-    return serialize_list(fields)
-
-def serialize_spawns_layer(level, layer):
-
-    level_w = level['width'] * level['tilewidth']
-    level_h = level['height'] * level['tileheight']
+    def get_category(value):
+        return (value if value else "Obstacle") + "Category"
 
     def convert_object(object):
 
@@ -200,24 +174,24 @@ def serialize_spawns_layer(level, layer):
         # Coordinate conversion
         if level['renderorder'] == RIGHT_DOWN:
             # Find center
-            w = object['width']
-            h = object['height']
-            cx = object['x'] + w / 2
+            w   = object['width']
+            h   = object['height']
+            cx  = object['x'] + w / 2
             # Flip Y
             cy = level_h - object['y'] - h / 2
         else:
             raise ValueError("Unsupported rendering order " + order)
 
-        new_object['position']  = Vec2((cx, cy))
-        new_object['size']      = Vec2((w, h))
-        new_object['type_']     = object['type']
-        new_object['name']      = object['name']
-        new_object['id']        = object['id']
+        new_object['categoryName']  = get_category(object['type'])
+        new_object['id']            = object['id']
+        new_object['name']          = object['name']
+        new_object['position']      = Vec2((cx, cy))
+        new_object['size']          = Vec2((w, h))
 
         return new_object
 
     fields = map(serialize_record,
-                map(convert_object, layer['objects']))
+                map(convert_object, objects))
     return serialize_list(fields)
 
 
@@ -242,25 +216,25 @@ def serialize_level(level):
 
     # Pass level data first
     serialize_tile_layer_       = partial(serialize_tile_layer, level)
-    serialize_obstacle_layer_   = partial(serialize_obstacle_layer, level)
     serialize_spawns_layer_     = partial(serialize_spawns_layer, level)
     serialize_lut_              = partial(serialize_lut, level)
 
     # Extract relevant object groups so they are directly accessible
     #   via the level.groupName label.
-    obstacles = filter(is_named_object_group("Obstacles"),
-        filter(is_object_layer, level['layers']))
 
-    spawns = filter(is_named_object_group("Spawns"),
-        filter(is_object_layer, level['layers']))
+    object_layers = filter(is_object_layer, level['layers'])
+    objects = [layer['objects'] for layer in object_layers]
+
+    # "Flatten" the list of lists,
+    #  see: https://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
+    objects = list(itertools.chain.from_iterable(objects))
 
     fields = {
         "name"          : level['name'],
         "background"    : Color(level['backgroundcolor'] if 'backgroundcolor' in level else '#000000'),
         "layers"        : map(serialize_tile_layer_, filter(is_tile_layer, level['layers'])),
         "assets"        : map(serialize_lut_, filter(is_tile_layer, level['layers'])),
-        "obstacles"     : Identity(serialize_obstacle_layer_(obstacles[0])),
-        "spawns"        : Identity(serialize_spawns_layer_(spawns[0]))
+        "spawns"        : Identity(serialize_spawns_layer_(objects))
     }
     return serialize_record(fields)
 
