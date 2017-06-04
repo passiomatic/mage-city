@@ -1,14 +1,13 @@
-module Resources
-    exposing
-        ( Msg
-        , Resources
-        , Asset
-        , initialModel
-        , loadAssets
-        , getTexture
-        , update
-        , isLoadingComplete
-        )
+module Resources exposing
+    ( Msg
+    , Resources
+    , Asset
+    , initialModel
+    , loadAssets
+    , getTexture
+    , update
+    , isLoadingComplete
+    )
 
 import Dict exposing (Dict)
 import Task
@@ -24,12 +23,14 @@ type Msg
 {- A game asset (texture, audio clip, etc.) to be loaded
 -}
 type alias Asset = -- TODO change in  AssetDescription
-    (String, String)
+    { name: String
+    , url : String
+    }
 
 {-|
 The main type of this library
 -}
-type Resources -- Rename is Textures ???
+type Resources -- TODO Rename is Textures ???
     = R (Dict String Texture)
     -- TODO | Sound (Dict String Sound)
     -- | NotFound texture
@@ -85,7 +86,7 @@ loadAssets assets =
         |> List.map
             (\asset ->
                 let
-                    (name, url) = asset
+                    { name, url } = asset
                 in
                     Task.attempt (AssetLoaded name url)
                         (Texture.loadWith textureOptions url)
@@ -96,7 +97,6 @@ loadAssets assets =
 isLoadingComplete : List Asset -> Resources -> Bool
 isLoadingComplete aa (R assets) =
     Dict.size assets == List.length aa
-
 
 
 update : Msg -> Resources -> Resources

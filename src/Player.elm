@@ -16,14 +16,18 @@ import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import Math.Matrix4 exposing (Mat4)
 
-import Resources as Resources exposing (Resources)
+import Resources as Resources exposing (Asset, Resources)
 import Render exposing (makeTransform, toEntity, Uniform(..))
 import Collision exposing (Side(..))
 import Object exposing (Object)
 
 
+atlasAsset : Asset
 atlasAsset =
-    ("Player", "images/player.png")
+    { name = "Player"
+    , url = "images/player.png"
+    }
+
 
 -- TODO
 -- type Frames
@@ -166,7 +170,7 @@ render resources time cameraProj ({ size, direction, position } as player) =
             Vector3.fromVec2 position zPosition
 
         atlas =
-            Resources.getTexture (Tuple.first atlasAsset) resources
+            Resources.getTexture atlasAsset.name resources
 
         (atlasW, atlasH) =
             Texture.size atlas

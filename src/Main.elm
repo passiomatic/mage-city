@@ -218,7 +218,7 @@ tick dt keys objects player =
 gameAssets =
     let
         assets =
-            [ List.singleton ( tileSet.name, tileSet.url )
+            [ List.singleton tileSet
             , Player.assets
             , Crate.assets
             ]

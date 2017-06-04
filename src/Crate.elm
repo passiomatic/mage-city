@@ -12,14 +12,17 @@ import Vector3Extra as Vector3
 
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
-import Resources as Resources exposing (Resources)
+import Resources as Resources exposing (Asset, Resources)
 import Tiled exposing (Placeholder)
 import Render exposing (makeTransform, toEntity, Uniform(..))
 import Object exposing (Object, Category(..), Crate)
 
 
-crateAsset =
-    ("Crate", "images/crate.png")
+atlasAsset : Asset
+atlasAsset =
+    { name = "Crate"
+    , url = "images/crate.png"
+    }
 
 
 crateSize =
@@ -27,7 +30,7 @@ crateSize =
 
 
 assets =
-    [ crateAsset
+    [ atlasAsset
     ]
 
 
@@ -44,8 +47,7 @@ collisionSize =
 spawn : Resources -> Placeholder -> Object
 spawn resources { id, name, position } =
     let
-        -- TODO use crateAsset.name
-        atlas = Resources.getTexture "Crate" resources
+        atlas = Resources.getTexture atlasAsset.name resources
     in
         { category = CrateCategory { atlas = atlas, isOpen = False }
         , id = id

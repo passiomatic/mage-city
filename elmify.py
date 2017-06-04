@@ -199,8 +199,11 @@ def serialize_lut(level, layer):
     lut_data = encode_tile_data((layer['width'], layer['height']),
         level['tileset_size'],
         layer['data'])
-    asset = "%s.%s" % (level['name'], layer['name']), lut_data
-    return serialize_tuple(asset)
+    asset = {
+        "name" : "%s.%s" % (level['name'], layer['name']),
+        "url" : lut_data
+        }
+    return serialize_record(asset)
 
 def serialize_level(level):
 
