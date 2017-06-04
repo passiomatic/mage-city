@@ -8,6 +8,7 @@ import Keyboard.Extra
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import WebGL.Texture as Texture exposing (Texture)
+import Collision
 import Render
 import Scene
 import Player exposing (Player)
@@ -199,15 +200,19 @@ relativeTo referencePosition referenceSize position =
             |> Vector2.add size
 
 
-
 tick : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
 tick dt keys objects player =
     let
-        newPlayer = Player.tick dt keys player
+        newPlayer =
+            Player.tick dt keys player
 
-        collidingEntities = Player.collision objects newPlayer
+        playerRect =
+            Player.toRectangle newPlayer
+
+        collidingObjects =
+            Object.colliding playerRect objects
     in
-        if List.isEmpty collidingEntities then
+        if List.isEmpty collidingObjects then
             newPlayer --(newPlayer, NoOp)
         else
             player -- (newPlayer, NoOp)

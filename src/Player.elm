@@ -3,7 +3,7 @@ module Player exposing
     , initialModel
     , tick
     , render
-    , collision
+    , toRectangle
     , assets
     )
 
@@ -18,7 +18,7 @@ import Math.Matrix4 exposing (Mat4)
 
 import Resources as Resources exposing (Asset, Resources)
 import Render exposing (makeTransform, toEntity, Uniform(..))
-import Collision exposing (Side(..))
+import Collision exposing (Rectangle)
 import Object exposing (Object)
 
 
@@ -96,23 +96,6 @@ nextPosition dt player =
     }
 
 
-{-| Figure put the colliding objects with player
--}
-collision : List Object -> Player -> List Object
-collision objects player =
-    let
-        playerRect = Collision.rectangle player.position collisionSize
-
-        --isColliding : Object -> Bool
-        isColliding { position, collisionSize }  =
-            let
-                rect = Collision.rectangle position collisionSize
-            in
-                Collision.axisAlignedBoundingBox rect playerRect
-    in
-        List.filter isColliding objects
-
-
 {-| Called on every update cycle by the AnimationFrame subscription
 -}
 tick : Float -> Keyboard.State -> Player -> Player
@@ -138,6 +121,11 @@ walk keys player =
             | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
             , direction = direction
         }
+
+
+toRectangle : Player -> Rectangle
+toRectangle player =
+    Collision.rectangle player.position collisionSize
 
 
 -- RENDERING

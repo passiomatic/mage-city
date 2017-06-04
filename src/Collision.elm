@@ -5,7 +5,6 @@ module Collision
         , rectangleSide
         , Rectangle
         , rectangle
-        , toTuple
         )
 
 {-| Detect collision/intersection of geometry in a defined 2D coordinate space
@@ -41,21 +40,6 @@ rectangle position size =
             Vector2.toTuple size
     in
         Rectangle { cx = cx, cy = cy, w = w, h = h }
-
-
-{-| Convert the rectangle hitbox geometry back to a
-tuple (centerX, centerX, width, height)
--}
-toTuple : Rectangle -> ( Vec2, Vec2 )
-toTuple (Rectangle rect) =
-    let
-        position =
-            vec2 rect.cx rect.cy
-
-        size =
-            vec2 rect.w rect.h
-    in
-        (position, size)
 
 
 {-| Super efficient collision detection between
