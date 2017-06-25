@@ -16,7 +16,7 @@ import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 
-import Tiled exposing (Level, Layer, Placeholder, tileSize, tileSet)
+import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize, tileSet)
 import Render exposing (makeTransform, toEntity, Uniform(..))
 import Object exposing (Object, Category(..))
 import Crate
@@ -37,34 +37,39 @@ spawnObjects resources level =
                     objects
             )
     in
-        List.foldl spawner [] level.spawns
+        List.foldl spawner [] level.placeholders
 
 
 spawnObject : Resources -> Placeholder -> Maybe Object
 spawnObject resources placeholder =
-    case placeholder.categoryName of
+    case (placeholder.categoryName, placeholder.geometry) of
 
-        "TriggerCategory" ->
-            Just (spawnInvisible TriggerCategory placeholder)
+        ( "TriggerCategory", RectangleGeometry { position, size } ) ->
+            Just
+                { category = TriggerCategory
+                , id = placeholder.id
+                , name = placeholder.name
+                , position = position
+                , collisionSize = size
+                }
 
-        "ObstacleCategory" ->
-            Just (spawnInvisible ObstacleCategory placeholder)
+        ( "ObstacleCategory", RectangleGeometry { position, size } ) ->
+            Just
+                { category = ObstacleCategory
+                , id = placeholder.id
+                , name = placeholder.name
+                , position = position
+                , collisionSize = size
+                }
 
-        "CrateCategory" ->
-            Just (Crate.spawn resources placeholder)
+        ( "CrateCategory", RectangleGeometry { position } ) ->
+            Just ( Crate.spawn resources placeholder.id placeholder.name position )
+
+        -- ("PathCategory", PolygonGeometry { points } ) ->
+        --     Just ()
 
         _ ->
             Debug.log ( "Could not spawn object " ++ placeholder.categoryName ) Nothing
-
-
-spawnInvisible : Category -> Placeholder -> Object
-spawnInvisible category { id, name, position, size } =
-    { category = category
-    , id = id
-    , name = name
-    , position = position
-    , collisionSize = size
-    }
 
 
 -- RENDERING

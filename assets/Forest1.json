@@ -394,8 +394,52 @@
          "width":16,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "height":32,
+         "name":"Paths",
+         "objects":[
+                {
+                 "height":0,
+                 "id":57,
+                 "name":"Citizen Path 1",
+                 "polygon":[
+                        {
+                         "x":0,
+                         "y":0
+                        }, 
+                        {
+                         "x":192,
+                         "y":-24
+                        }, 
+                        {
+                         "x":264,
+                         "y":80
+                        }, 
+                        {
+                         "x":72,
+                         "y":168
+                        }, 
+                        {
+                         "x":-32,
+                         "y":88
+                        }],
+                 "rotation":0,
+                 "type":"Path",
+                 "visible":true,
+                 "width":0,
+                 "x":152,
+                 "y":136
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "width":16,
+         "x":0,
+         "y":0
         }],
- "nextobjectid":56,
+ "nextobjectid":58,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

@@ -2,6 +2,7 @@ module Tiled exposing
     ( Level
     , Layer
     , Placeholder
+    , Geometry(..)
     , tileSet
     , tileSize
     )
@@ -33,20 +34,24 @@ type alias Level =
     , background : Color
     , assets : List Asset
     , layers : List Layer
-    , spawns : List Placeholder
+    , placeholders : List Placeholder
     }
 
 
-{-| Object placeholder in the level file. It will be turned into
-a game object after a spawn operation (see Scene.elm)
+{-| Object placeholder in the level file. It will be turned
+into a game object after a spawn operation (see Scene.elm)
 -}
 type alias Placeholder =
     { categoryName : String
     , id : Int
     , name : String
-    , position : Vec2
-    , size : Vec2
+    , geometry : Geometry
     }
+
+
+type Geometry
+    = RectangleGeometry { position : Vec2, size : Vec2 }
+    | PolygonGeometry  { points : List Vec2 }
 
 
 {-| Tile layer

@@ -19,6 +19,7 @@ module Levels.%s exposing (..)
 
 import Color exposing (rgb)
 import Math.Vector2 exposing (vec2)
+import Tiled exposing (Geometry(..))
 
 """
 
@@ -41,6 +42,8 @@ def serialize_int(v):
 def serialize_bool(v):
     return "True" if v else "False"
 
+# Collection/aggregated types
+
 def serialize_list(fields):
     return "[" + ", ".join(map(str, fields)) + "]"
 
@@ -49,16 +52,16 @@ def serialize_record(fields):
     return "{" + ", ".join(l) + "}"
 
 def serialize_ctor(type_, fields):
-    l = ["%s" % field for field in fields]
-    return type_ + " ".join(l)
+    l = ["%s" % serialize_value(field) for field in fields]
+    return type_ + " " + " ".join(l)
 
 def serialize_tuple(values):
     l = [serialize_value(v) for v in values]
     return "(" + ", ".join(l) + ")"
 
 # Serialize a type annotation
-def serialize_type(k, v):
-    return "%s : %s" % (k, v)
+# def serialize_type(k, v):
+#     return "%s : %s" % (k, v)
 
 # Pass value as-is
 class Identity(object):
@@ -94,12 +97,6 @@ class Vec2(object):
         w, h = self.v
         return 'vec2 %d %d' % (w, h)
 
-# class Asset(object):
-#     def __init__(self, v):
-#         self.v = v
-#     def serialize(self, _):
-#         return serialize_tuple(self.v)
-
 # The top serializer, this calls all the serializers above.
 #   Lists, records and tuple serializers can also call
 #   serialize_value() for each element
@@ -117,6 +114,8 @@ def serialize_value(v):
         serializer = serialize_bool
     elif t == tuple:
         serializer = serialize_tuple
+    elif t == dict:
+        serializer = serialize_record
     # Special serializers
     elif t in (Color, Identity, Rectangle, Vec2):
         serializer = v.serialize
@@ -162,8 +161,6 @@ def serialize_spawns_layer(level, objects):
     level_w = level['width'] * level['tilewidth']
     level_h = level['height'] * level['tileheight']
 
-    #serialize_ctor_ = partial(serialize_ctor, "Spawn")
-
     def get_category(value):
         return (value if value else "Obstacle") + "Category"
 
@@ -182,11 +179,15 @@ def serialize_spawns_layer(level, objects):
         else:
             raise ValueError("Unsupported rendering order " + order)
 
+        geometry = {
+            "position": Vec2((cx, cy)),
+            "size": Vec2((w, h))
+        }
+
         new_object['categoryName']  = get_category(object['type'])
         new_object['id']            = object['id']
         new_object['name']          = object['name']
-        new_object['position']      = Vec2((cx, cy))
-        new_object['size']          = Vec2((w, h))
+        new_object['geometry']      = Identity(serialize_ctor("RectangleGeometry", [geometry]))
 
         return new_object
 
@@ -237,7 +238,7 @@ def serialize_level(level):
         "background"    : Color(level['backgroundcolor'] if 'backgroundcolor' in level else '#000000'),
         "layers"        : map(serialize_tile_layer_, filter(is_tile_layer, level['layers'])),
         "assets"        : map(serialize_lut_, filter(is_tile_layer, level['layers'])),
-        "spawns"        : Identity(serialize_spawns_layer_(objects))
+        "placeholders"  : Identity(serialize_spawns_layer_(objects))
     }
     return serialize_record(fields)
 

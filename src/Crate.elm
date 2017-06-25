@@ -13,7 +13,6 @@ import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
-import Tiled exposing (Placeholder)
 import Render exposing (makeTransform, toEntity, Uniform(..))
 import Object exposing (Object, Category(..), Crate)
 
@@ -44,8 +43,8 @@ collisionSize =
     vec2 26 30
 
 
-spawn : Resources -> Placeholder -> Object
-spawn resources { id, name, position } =
+spawn : Resources -> Int -> String -> Vec2 -> Object
+spawn resources id name position =
     let
         atlas = Resources.getTexture atlasAsset.name resources
     in
