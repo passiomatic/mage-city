@@ -431,6 +431,17 @@
                  "width":0,
                  "x":152,
                  "y":136
+                }, 
+                {
+                 "height":32,
+                 "id":58,
+                 "name":"Npc 1",
+                 "rotation":0,
+                 "type":"Npc",
+                 "visible":true,
+                 "width":32,
+                 "x":272,
+                 "y":904
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -439,7 +450,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":58,
+ "nextobjectid":60,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

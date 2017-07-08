@@ -16,6 +16,7 @@ import Tiled exposing (Level, tileSet)
 import Camera exposing (Camera)
 import Object exposing (Object)
 import Crate
+import Npc
 import Levels.Forest1 as Forest1
 
 
@@ -111,12 +112,7 @@ update msg model =
             model ! []
 
         Tick dt ->
-            { model
-                | player = tick dt model.keys model.objects model.player
-                , time = dt + model.time
-                , camera = updateCamera dt model.player.position model.camera
-            }
-                ! []
+            (tick dt model) ! []
 
         Resources msg ->
             let
@@ -148,6 +144,29 @@ update msg model =
                 }
                     ! []
 
+
+tick : Float -> Model -> Model
+tick dt model =
+
+    let
+        time =
+            dt + model.time
+
+        -- Update all game objects
+        objects =
+            Scene.updateObjects dt model.objects
+
+        -- Update player
+        player =
+            tick_ dt model.keys model.objects model.player
+
+    in
+        { model
+        | player = player
+        , objects = objects
+        , time = time
+        , camera = updateCamera dt player.position model.camera
+        }
 
 
 minDistanceFromEdge =
@@ -200,8 +219,8 @@ relativeTo referencePosition referenceSize position =
             |> Vector2.add size
 
 
-tick : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
-tick dt keys objects player =
+tick_ : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
+tick_ dt keys objects player =
     let
         newPlayer =
             Player.tick dt keys player
@@ -226,6 +245,7 @@ gameAssets =
             [ List.singleton tileSet
             , Player.assets
             , Crate.assets
+            , Npc.assets
             ]
     in
         -- Add all the assets from levels
@@ -243,19 +263,16 @@ renderPlaying { player, objects, resources, time, viewport, camera, level } =
         cameraProj =
             Camera.view viewport camera
 
-        renderObjects =
-            List.foldl (Scene.renderObject time cameraProj) [] objects
-
         scene =
             Scene.renderLevel resources cameraProj level
-                ++ renderObjects
+                ++ (Scene.renderObjects time cameraProj objects)
                 ++ [ Player.render resources time cameraProj player ]
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =
             Vector2.scale vieportScale viewport |> Vector2.toTuple
     in
-        Render.toWebGL ( floor w, floor h ) scene
+        Render.toHtml ( floor w, floor h ) scene
 
 
 

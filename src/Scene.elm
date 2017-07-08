@@ -1,10 +1,11 @@
 module Scene exposing
     ( spawnObjects
+    , updateObjects
+    , renderObjects
     , renderLevel
-    , renderObject
     )
 
-{-| Scene creation and rendering functions
+{-| Scene creation, updating and rendering functions
 -}
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
@@ -20,6 +21,7 @@ import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize, tileSe
 import Render exposing (makeTransform, toEntity, Uniform(..))
 import Object exposing (Object, Category(..))
 import Crate
+import Npc
 
 
 -- CREATION
@@ -27,21 +29,23 @@ import Crate
 
 spawnObjects : Resources -> Level -> List Object
 spawnObjects resources level =
+
     let
-        spawner = (\placeholder objects ->
+        spawner : Placeholder -> (List Object -> List Object)
+        spawner placeholder =
             case spawnObject resources placeholder of
                 Just object ->
-                    object :: objects
+                    (::) object
 
                 Nothing ->
-                    objects
-            )
+                    identity
     in
         List.foldl spawner [] level.placeholders
 
 
 spawnObject : Resources -> Placeholder -> Maybe Object
 spawnObject resources placeholder =
+
     case (placeholder.categoryName, placeholder.geometry) of
 
         ( "TriggerCategory", RectangleGeometry { position, size } ) ->
@@ -63,13 +67,40 @@ spawnObject resources placeholder =
                 }
 
         ( "CrateCategory", RectangleGeometry { position } ) ->
+            --Just ( Debug.log "Spawn crate @ " (Crate.spawn resources placeholder.id placeholder.name position) )
             Just ( Crate.spawn resources placeholder.id placeholder.name position )
+
+        ( "NpcCategory", RectangleGeometry { position } ) ->
+            Just ( Npc.spawn resources placeholder.id placeholder.name position )
 
         -- ("PathCategory", PolygonGeometry { points } ) ->
         --     Just ()
 
         _ ->
             Debug.log ( "Could not spawn object " ++ placeholder.categoryName ) Nothing
+
+-- UPDATING
+
+
+{-| Update all the scene objects.
+-}
+updateObjects dt objects =
+
+    let
+        updater : Object -> (List Object -> List Object)
+        updater object =
+
+            case object.category of
+                NpcCategory npc ->
+                    (::) ( Npc.tick dt object npc )
+
+                _ ->
+                    -- Return the orginal object
+                    (::) object
+    in
+        List.foldl updater [] objects
+
+
 
 
 -- RENDERING
@@ -112,17 +143,22 @@ renderLayer resources cameraProj layer zPosition =
         toEntity (TiledRect uniforms)
 
 
-{-| Render an object while discarding obstacles and triggers
+{-| Render objects while discarding "invisibles" (obstacles and triggers)
 -}
-renderObject : Float -> Mat4 -> Object -> (List Entity -> List Entity)
-renderObject time cameraProj object =
+renderObjects time cameraProj objects =
 
-    case object.category of
-        ObstacleCategory ->
-            identity
+    let
+        renderer : Object -> (List Entity -> List Entity)
+        renderer object =
 
-        TriggerCategory ->
-            identity
+            case object.category of
+                CrateCategory crate ->
+                    (::) (Crate.render time cameraProj object crate)
 
-        CrateCategory crate ->
-            (::) ( Crate.render time cameraProj object crate )
+                NpcCategory npc ->
+                    (::) ( Npc.render time cameraProj object npc )
+
+                _ ->
+                    identity
+    in
+         List.foldl renderer [] objects

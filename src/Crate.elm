@@ -4,6 +4,9 @@ module Crate exposing
     , assets
     )
 
+{-| Crate game object implementation.
+-}
+
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4)
@@ -24,9 +27,6 @@ atlasAsset =
     }
 
 
-crateSize =
-    vec2 32 32
-
 
 assets =
     [ atlasAsset
@@ -38,6 +38,11 @@ zPosition =
     0.33
 
 
+-- Sprite size
+size =
+    vec2 32 32
+
+
 -- Smaller than sprite size
 collisionSize =
     vec2 26 30
@@ -46,9 +51,16 @@ collisionSize =
 spawn : Resources -> Int -> String -> Vec2 -> Object
 spawn resources id name position =
     let
-        atlas = Resources.getTexture atlasAsset.name resources
+        atlas =
+            Resources.getTexture atlasAsset.name resources
+
+        category =
+            CrateCategory
+                { atlas = atlas
+                , isOpen = False
+                }
     in
-        { category = CrateCategory { atlas = atlas, isOpen = False }
+        { category = category
         , id = id
         , name = name
         , position = position
@@ -69,11 +81,11 @@ render time cameraProj { position } { atlas, isOpen } =
             Texture.size atlas
 
         uniforms =
-            { transform = makeTransform position_ crateSize 0 (0.5, 0.5)
+            { transform = makeTransform position_ size 0 (0.5, 0.5)
             , cameraProj = cameraProj
             , atlas = atlas
             , atlasSize = Vector2.fromInt atlasW atlasH
-            , spriteSize = crateSize
+            , spriteSize = size
             , spriteIndex = 0 -- TODO isOpen
             }
     in

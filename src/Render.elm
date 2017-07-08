@@ -3,7 +3,7 @@ module Render exposing
     , unitSquareMesh
     , makeTransform
     , toEntity
-    , toWebGL
+    , toHtml
     , Uniform
     , Uniform(..)
     , TexturedRectUniform
@@ -200,15 +200,6 @@ renderOptions =
 
 toHtml : (Int, Int) -> List Entity -> Html msg
 toHtml (w, h) entities =
-    WebGL.toHtmlWith
-        renderOptions
-        [ Attr.width w, Attr.height h ]
-        entities
-
-
-toWebGL : (Int, Int) -> List Entity -> Html msg
-toWebGL (w, h) entities =
-    -- Just wrap WebGL view inside a div and call the final renderer
     Html.div
         [ Attr.id "mage-city"
         , Attr.style
@@ -217,4 +208,9 @@ toWebGL (w, h) entities =
             , ( "margin", "auto" )
             ]
         ]
-        [ toHtml (w, h) entities ]
+        [
+            WebGL.toHtmlWith
+                renderOptions
+                [ Attr.width w, Attr.height h ]
+                entities
+        ]

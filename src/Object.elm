@@ -3,6 +3,7 @@ module Object exposing
     , Category
     , Category(..)
     , Crate
+    , Npc
     , colliding
     )
 
@@ -18,9 +19,19 @@ type Category
     = TriggerCategory
     | ObstacleCategory
     | CrateCategory Crate
+    | NpcCategory Npc
 
 
-type alias Crate = TexturedObject { isOpen : Bool }
+type alias Crate = TexturedObject
+    { isOpen : Bool
+    }
+
+
+type alias Npc = TexturedObject
+    { velocity : Vec2
+    , targetPosition : Vec2
+    -- direction : Direction
+    }
 
 
 {-| A generic object in the level
@@ -34,14 +45,15 @@ type alias Object =
     }
 
 
-{-| Object with an associated texture atlas with possibly multiple appearance -}
+{-| Object with an associated texture atlas with
+potentially multiple appearance -}
 type alias TexturedObject a =
     { a | atlas: Texture }
 
 
-{-| Object with an associated animation -}
-type alias AnimatedObject a =
-    { a | atlas: Texture, frameCount: Int, duration : Float }
+{- Object with a simple looping animation -}
+-- type alias AnimatedObject a =
+--     { a | atlas: Texture, frameCount: Int, duration : Float }
 
 
 -- MISC

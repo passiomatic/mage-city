@@ -7,8 +7,7 @@ module Player exposing
     , assets
     )
 
-import Color
-import Keyboard.Extra as Keyboard exposing (Direction, Direction(..))
+import Keyboard.Extra as Keyboard exposing (Direction(..))
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
@@ -96,7 +95,7 @@ nextPosition dt player =
     }
 
 
-{-| Called on every update cycle by the AnimationFrame subscription
+{-| Called on every update cycle by the game engine
 -}
 tick : Float -> Keyboard.State -> Player -> Player
 tick dt keys player  =
