@@ -6,10 +6,6 @@ Mage City is an ongoing learning experiment aiming to recreate the aesthetic and
 
 ![Mage City screenshot](./screenshot.png)
 
-## Tiled integration
-
-Levels in Mage City have been designed using the open-source [Tiled level editor][2] and converted in Elm data structures using the `elmify` command line utility.
-
 ## Project status
 
 The following features have been implemented:
@@ -34,10 +30,15 @@ The following features have been implemented:
 * Pathfinding
 * Background music and sound effects
 
+## Tiled integration
+
+Levels in Mage City have been designed using the open-source [Tiled level editor][2] and converted in Elm data structures using the `elmify` command line utility.
+
 ## Game art credits
 
 * Mage City and Forest tile sets by [Daniel "Hyptosis" Harris][4]
 * Player sprites by [Penelope Williams][5]
+* NPC sprites by [Anthony Angelo Alvarez][9]
 
 ## Code credits
 
@@ -54,4 +55,5 @@ Mage City contains portions of:
 [6]: http://package.elm-lang.org/packages/Zinggi/elm-2d-game/latest/
 [7]: http://package.elm-lang.org/packages/burabure/elm-collision/latest
 [8]: http://package.elm-lang.org/packages/Zinggi/elm-game-resources/latest
+[9]: http://elysianangel8.deviantart.com
 [home]: http://lab.passiomatic.com/mage-city/
