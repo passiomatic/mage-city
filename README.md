@@ -2,9 +2,21 @@
 
 Mage City is an ongoing learning experiment aiming to recreate the aesthetic and some gameplay elements of 90's Nintendo RPG action games like [_Secret of Mana_][1].
 
-[Try it here][home].
+[Try it out][home].
 
 ![Mage City screenshot](./screenshot.png)
+
+## Run locally
+
+Clone the repo and run:
+
+    elm-package install
+
+Elm will ask for confirmation and download all the necessary packages. Then run:
+
+    elm-reactor
+
+and point your browser to `http://localhost:8000/index.html`.  
 
 ## Project status
 
