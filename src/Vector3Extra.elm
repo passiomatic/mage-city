@@ -1,4 +1,4 @@
-module Vector3Extra exposing (zero, fromVec2, fromColor)
+module Vector3Extra exposing (zero, fromColor)
 
 import Color exposing (Color)
 
@@ -7,11 +7,6 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 
 zero =
     vec3 0 0 0
-
-
-fromVec2 : Vec2 -> Float -> Vec3
-fromVec2 value z =
-    vec3 (Vector2.getX value) (Vector2.getY value) z
 
 
 fromColor : Color -> Vec3

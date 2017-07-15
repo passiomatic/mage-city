@@ -11,6 +11,7 @@ import Keyboard.Extra as Keyboard exposing (Direction(..))
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
+import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import Math.Matrix4 exposing (Mat4)
@@ -153,8 +154,10 @@ render resources time cameraProj ({ size, direction, position } as player) =
                 _ ->
                     idleFrames
 
-        position_ =
-            Vector3.fromVec2 position zPosition
+        (x, y) =
+            Vector2.toTuple position
+
+        position_ = vec3 x y zPosition
 
         atlas =
             Resources.getTexture atlasAsset.name resources

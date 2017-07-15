@@ -155,7 +155,7 @@ def serialize_tile_layer(level, layer):
     }
     return serialize_record(fields)
 
-def serialize_spawns_layer(level, objects):
+def serialize_placeholders_layer(level, objects):
 
     # Convert size in pixels
     level_w = level['width'] * level['tilewidth']
@@ -220,7 +220,7 @@ def serialize_level(level):
 
     # Pass level data first
     serialize_tile_layer_       = partial(serialize_tile_layer, level)
-    serialize_spawns_layer_     = partial(serialize_spawns_layer, level)
+    serialize_placeholders_layer_     = partial(serialize_placeholders_layer, level)
     serialize_lut_              = partial(serialize_lut, level)
 
     # Extract relevant object groups so they are directly accessible
@@ -238,7 +238,7 @@ def serialize_level(level):
         "background"    : Color(level['backgroundcolor'] if 'backgroundcolor' in level else '#000000'),
         "layers"        : map(serialize_tile_layer_, filter(is_tile_layer, level['layers'])),
         "assets"        : map(serialize_lut_, filter(is_tile_layer, level['layers'])),
-        "placeholders"  : Identity(serialize_spawns_layer_(objects))
+        "placeholders"  : Identity(serialize_placeholders_layer_(objects))
     }
     return serialize_record(fields)
 

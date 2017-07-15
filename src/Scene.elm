@@ -67,14 +67,10 @@ spawnObject resources placeholder =
                 }
 
         ( "CrateCategory", RectangleGeometry { position } ) ->
-            --Just ( Debug.log "Spawn crate @ " (Crate.spawn resources placeholder.id placeholder.name position) )
             Just ( Crate.spawn resources placeholder.id placeholder.name position )
 
         ( "NpcCategory", RectangleGeometry { position } ) ->
             Just ( Npc.spawn resources placeholder.id placeholder.name position )
-
-        -- ("PathCategory", PolygonGeometry { points } ) ->
-        --     Just ()
 
         _ ->
             Debug.log ( "Could not spawn object " ++ placeholder.categoryName ) Nothing
@@ -119,7 +115,11 @@ renderLevel resources cameraProj level =
 renderLayer : Resources -> Mat4 -> Layer -> Float -> Entity
 renderLayer resources cameraProj layer zPosition =
     let
-        position = Vector3.fromVec2 layer.position zPosition
+        (x, y) =
+            Vector2.toTuple layer.position
+
+        position =
+            vec3 x y zPosition
 
         atlas =
             Resources.getTexture tileSet.name resources

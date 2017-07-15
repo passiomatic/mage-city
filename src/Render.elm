@@ -66,8 +66,11 @@ makeTransform position size rotation (pivotX, pivotY) =
         rotation_ =
             Matrix4.makeRotate rotation (vec3 0 0 1)
 
+        (w, h) =
+            Vector2.toTuple size
+
         scale =
-            Matrix4.makeScale (Vector3.fromVec2 size 1)
+            Matrix4.makeScale (vec3 w h 1)
 
         pivot =
             Matrix4.makeTranslate (vec3 -pivotX -pivotY 0)
