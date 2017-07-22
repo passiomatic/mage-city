@@ -1,8 +1,9 @@
-module Crate exposing
-    ( spawn
-    , render
-    , assets
-    )
+module Crate
+    exposing
+        ( spawn
+        , render
+        , assets
+        )
 
 {-| Crate game object implementation.
 -}
@@ -12,11 +13,10 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4)
 import Vector2Extra as Vector2
 import Vector3Extra as Vector3
-
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
-import Render exposing (makeTransform, toEntity, Uniform(..))
+import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Crate)
 
 
@@ -27,23 +27,19 @@ atlasAsset =
     }
 
 
-
 assets =
     [ atlasAsset
     ]
 
 
--- Just behind the player
 zPosition =
-    0.33
+    0.33 -- Just behind the player
 
 
--- Sprite size
-size =
+spriteSize =
     vec2 32 32
 
 
--- Smaller than sprite size
 collisionSize =
     vec2 26 30
 
@@ -68,25 +64,27 @@ spawn resources id name position =
         }
 
 
+
 -- RENDERING
 
 
 render : Float -> Mat4 -> Object -> Crate -> Entity
 render time cameraProj { position } { atlas, isOpen } =
-
     let
-        position_ = vec3 (Vector2.getX position) (Vector2.getY position) zPosition
+        position_ =
+            vec3 (Vector2.getX position) (Vector2.getY position) zPosition
 
-        (atlasW, atlasH) =
+        ( atlasW, atlasH ) =
             Texture.size atlas
 
         uniforms =
-            { transform = makeTransform position_ size 0 (0.5, 0.5)
+            { transform = Render.makeTransform position_ spriteSize 0 ( 0.5, 0.5 )
             , cameraProj = cameraProj
             , atlas = atlas
             , atlasSize = Vector2.fromInt atlasW atlasH
-            , spriteSize = size
-            , spriteIndex = 0 -- TODO isOpen
+            , spriteSize = spriteSize
+            , spriteIndex =
+                if isOpen then 0 else 1
             }
     in
-        toEntity ( TexturedRect uniforms )
+        Render.toEntity (TexturedRect uniforms)

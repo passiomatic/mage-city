@@ -387,6 +387,17 @@
                  "width":64,
                  "x":224,
                  "y":-8
+                }, 
+                {
+                 "height":32,
+                 "id":60,
+                 "name":"",
+                 "rotation":0,
+                 "type":"Player",
+                 "visible":true,
+                 "width":32,
+                 "x":200,
+                 "y":920
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -450,7 +461,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":60,
+ "nextobjectid":62,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

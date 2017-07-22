@@ -4,9 +4,10 @@ module Object exposing
     , Category(..)
     , Crate
     , Npc
-    , colliding
+    , Player
     )
 
+import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Math.Vector2 as Vector2 exposing (Vec2)
 import Math.Vector3 as Vector3 exposing (Vec3)
 import WebGL.Texture as Texture exposing (Texture)
@@ -20,6 +21,7 @@ type Category
     | ObstacleCategory
     | CrateCategory Crate
     | NpcCategory Npc
+    | PlayerCategory Player
 
 
 type alias Crate = TexturedObject
@@ -31,6 +33,12 @@ type alias Npc = TexturedObject
     { velocity : Vec2
     , targetPosition : Vec2
     -- direction : Direction
+    }
+
+
+type alias Player = TexturedObject
+    { direction : Direction
+    , velocity : Vec2
     }
 
 
@@ -59,16 +67,16 @@ type alias TexturedObject a =
 -- MISC
 
 
-{-| Figure out the colliding objects with given target rectangle
+{- Figure out the colliding objects with given target rectangle
 -}
-colliding : Rectangle -> List Object -> List Object
-colliding targetRect objects =
-    let
-        isColliding : Object -> Bool
-        isColliding { position, collisionSize }  =
-            let
-                rect = Collision.rectangle position collisionSize
-            in
-                Collision.axisAlignedBoundingBox rect targetRect
-    in
-        List.filter isColliding objects
+-- colliding : Rectangle -> List Object -> List Object
+-- colliding targetRect objects =
+--     let
+--         isColliding : Object -> Bool
+--         isColliding { position, collisionSize }  =
+--             let
+--                 rect = Collision.rectangle position collisionSize
+--             in
+--                 Collision.axisAlignedBoundingBox rect targetRect
+--     in
+--         List.filter isColliding objects

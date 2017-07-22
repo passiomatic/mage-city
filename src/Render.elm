@@ -4,7 +4,6 @@ module Render exposing
     , makeTransform
     , toEntity
     , toHtml
-    , Uniform
     , Uniform(..)
     , TexturedRectUniform
     , AnimatedRectUniform

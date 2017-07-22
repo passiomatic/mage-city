@@ -1,9 +1,10 @@
-module Npc exposing
-    ( spawn
-    , tick
-    , render
-    , assets
-    )
+module Npc
+    exposing
+        ( spawn
+        , tick
+        , render
+        , assets
+        )
 
 {-| NPC (Non-Player Character) game object implementation.
 -}
@@ -14,11 +15,10 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4)
 import Vector2Extra as Vector2
 import Vector3Extra as Vector3
-
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
-import Render exposing (makeTransform, toEntity, Uniform(..))
+import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Npc)
 
 
@@ -33,30 +33,34 @@ assets =
     [ atlasAsset
     ]
 
+
 walkFramesNorth =
-    (12, 3, 0.6)
+    ( 12, 3, 0.6 )
+
 
 walkFramesEast =
-    (8, 3, 0.6)
+    ( 8, 3, 0.6 )
+
 
 walkFramesSouth =
-    (0, 3, 0.6)
+    ( 0, 3, 0.6 )
+
 
 walkFramesWest =
-    (4, 3, 0.6)
+    ( 4, 3, 0.6 )
+
 
 idleFrames =
-    (16, 2, 2.8)
+    ( 16, 2, 2.8 )
 
 
--- Like player
 zPosition =
-    0.35
+    0.33 -- Just behind the player
 
 
--- Sprite size
-size =
+spriteSize =
     vec2 32 32
+
 
 
 -- Smaller than sprite size
@@ -85,16 +89,8 @@ spawn resources id name position =
         }
 
 
+
 -- MOVEMENT
-
-
-{-| Calculate next NPC position with s = v * dt
--}
-nextPosition : Float -> Npc -> Object -> Object
-nextPosition dt npc ({ position } as object)  =
-    { object
-        | position = Vector2.add position (Vector2.scale dt npc.velocity)
-    }
 
 
 {-| Called on every update cycle by the game engine
@@ -102,61 +98,72 @@ nextPosition dt npc ({ position } as object)  =
 tick : Float -> Object -> Npc -> Object
 tick dt object npc =
     -- Figure out next NPC position
-    object
-        |> nextPosition dt npc
+    { object
+        | position = Vector2.add object.position (Vector2.scale dt npc.velocity)
+    }
+
 
 
 -- RENDERING
 
 
 render : Float -> Mat4 -> Object -> Npc -> Entity
-render time cameraProj { position } { velocity, atlas } =
-
+render time cameraProj { position } ({ velocity, atlas } as npc) =
     let
         (spriteIndex, frameCount, duration) =
-            case Vector2.toDirection velocity of
-                North ->
-                    walkFramesNorth
+            resolveFrames npc
 
-                East ->
-                    walkFramesEast
+        ( x, y ) =
+            Vector2.toTuple position
 
-                NorthEast ->
-                    walkFramesEast
+        position_ =
+            vec3 x y zPosition
 
-                SouthEast ->
-                    walkFramesEast
-
-                South ->
-                    walkFramesSouth
-
-                West ->
-                    walkFramesWest
-
-                NorthWest ->
-                    walkFramesWest
-
-                SouthWest ->
-                    walkFramesWest
-
-                _ ->
-                    idleFrames
-
-        position_ = vec3 (Vector2.getX position) (Vector2.getY position) zPosition
-
-        (atlasW, atlasH) =
+        ( atlasW, atlasH ) =
             Texture.size atlas
 
         uniforms =
-            { transform = makeTransform position_ size 0 (0.5, 0.5)
+            { transform = Render.makeTransform position_ spriteSize 0 ( 0.5, 0.5 )
             , cameraProj = cameraProj
             , atlas = atlas
             , frameCount = frameCount
             , spriteIndex = spriteIndex
             , duration = duration
             , time = time
-            , spriteSize = size
+            , spriteSize = spriteSize
             , atlasSize = Vector2.fromInt atlasW atlasH
             }
     in
-        toEntity (AnimatedRect uniforms)
+        Render.toEntity (AnimatedRect uniforms)
+
+
+resolveFrames : Npc -> (Int, Int, Float)
+resolveFrames npc =
+
+    case Vector2.toDirection npc.velocity of
+        North ->
+            walkFramesNorth
+
+        East ->
+            walkFramesEast
+
+        NorthEast ->
+            walkFramesEast
+
+        SouthEast ->
+            walkFramesEast
+
+        South ->
+            walkFramesSouth
+
+        West ->
+            walkFramesWest
+
+        NorthWest ->
+            walkFramesWest
+
+        SouthWest ->
+            walkFramesWest
+
+        _ ->
+            idleFrames

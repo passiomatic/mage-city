@@ -1,10 +1,9 @@
 module Player exposing
-    ( Player
-    , initialModel
+    ( spawn
     , tick
     , render
-    , toRectangle
     , assets
+    , objectId
     )
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
@@ -17,9 +16,9 @@ import Vector3Extra as Vector3
 import Math.Matrix4 exposing (Mat4)
 
 import Resources as Resources exposing (Asset, Resources)
-import Render exposing (makeTransform, toEntity, Uniform(..))
+import Render exposing (Uniform(..))
 import Collision exposing (Rectangle)
-import Object exposing (Object)
+import Object exposing (Object, Category(..), Player)
 
 
 atlasAsset : Asset
@@ -29,152 +28,184 @@ atlasAsset =
     }
 
 
--- TODO
--- type Frames
---     = WalkNorth 12 3
---     | WalkEast 8 3
---     | WalkSouth 0 3
---     | WalkWest 4 3
-
+-- Hardcoded id to grab the player object later
+objectId =
+    0
 
 walkFramesNorth =
     (12, 3, 0.6)
 
+
 walkFramesEast =
     (8, 3, 0.6)
+
 
 walkFramesSouth =
     (0, 3, 0.6)
 
+
 walkFramesWest =
     (4, 3, 0.6)
+
 
 idleFrames =
     (16, 2, 1.8)
 
+
 assets =
     [ atlasAsset ]
 
+
 walkSpeed =
     75
+
 
 {-| Player Z position in the world -}
 zPosition =
     0.35
 
-{-| Smaller than sprite size -}
+
+spriteSize =
+    vec2 32 32
+
+
 collisionSize =
     vec2 26 30
 
 
-type alias Player =
-    { size : Vec2  -- TODO Should this stay into the model?
-    , direction : Direction
-    , position : Vec2
-    , velocity : Vec2
-    }
+spawn : Resources -> Vec2 -> Object
+spawn resources position =
+    let
+        atlas =
+            Resources.getTexture atlasAsset.name resources
 
-
-initialModel : Player
-initialModel =
-    { size = vec2 32 32
-    , direction = South
-    , position = vec2 200 100
-    , velocity = vec2 0 0
-    }
+        category =
+            PlayerCategory
+                { direction = South
+                , atlas = atlas
+                , velocity = Vector2.zero
+                }
+    in
+        { category = category
+        , id = objectId
+        , name = "Player"
+        , position = position
+        , collisionSize = collisionSize
+        }
 
 
 -- MOVEMENT
 
 
-{-| Calculate next player position with s = v * dt
--}
-nextPosition : Float -> Player -> Player
-nextPosition dt player =
-    { player
-        | position = Vector2.add player.position (Vector2.scale dt player.velocity)
-    }
-
-
 {-| Called on every update cycle by the game engine
 -}
-tick : Float -> Keyboard.State -> Player -> Player
-tick dt keys player  =
-    -- Figure out next player position
-    player
-        |> walk keys
-        |> nextPosition dt
-
-
-{-| Query keyboard keys to figure out walk velocity vector
--}
-walk : Keyboard.State -> Player -> Player
-walk keys player =
+tick : Float -> Keyboard.State -> Object -> Player -> Object
+tick dt keys object player =
     let
         direction =
             Keyboard.arrowsDirection keys
 
         {x, y} =
             Keyboard.arrows keys
-    in
-        { player
+
+        newPlayer = { player
             | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
             , direction = direction
         }
 
+    in
+    { object
+        | position = Vector2.add object.position (Vector2.scale dt newPlayer.velocity)
+        , category = PlayerCategory newPlayer
+    }
 
-toRectangle : Player -> Rectangle
-toRectangle player =
-    Collision.rectangle player.position collisionSize
+
+{- Calculate next player position with s = v * dt
+-}
+-- nextPosition : Float -> Player -> Object -> Object
+-- nextPosition dt player ({ position } as object)  =
+--     { object
+--         | position = Vector2.add position (Vector2.scale dt player.velocity)
+--     }
+
+
+{- Query keyboard keys to figure out walk velocity vector
+-}
+-- walk : Keyboard.State -> Player -> Object -> Object
+-- walk keys player object =
+--     let
+--         direction =
+--             Keyboard.arrowsDirection keys
+--
+--         {x, y} =
+--             Keyboard.arrows keys
+--     in
+--         { player
+--             | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
+--             , direction = direction
+--         }
 
 
 -- RENDERING
 
-render : Resources -> Float -> Mat4 -> Player -> Entity
-render resources time cameraProj ({ size, direction, position } as player) =
+
+render : Float -> Mat4 -> Object -> Player -> Entity
+render time cameraProj { position } ({ velocity, atlas, direction } as player) =
+
     let
         (spriteIndex, frameCount, duration) =
-            case direction of
-                North ->
-                    walkFramesNorth
-                East ->
-                    walkFramesEast
-                NorthEast ->
-                    walkFramesEast
-                SouthEast ->
-                    walkFramesEast
-                South ->
-                    walkFramesSouth
-                West ->
-                    walkFramesWest
-                NorthWest ->
-                    walkFramesWest
-                SouthWest ->
-                    walkFramesWest
-                _ ->
-                    idleFrames
+            resolveFrames player
 
         (x, y) =
             Vector2.toTuple position
 
         position_ = vec3 x y zPosition
 
-        atlas =
-            Resources.getTexture atlasAsset.name resources
-
         (atlasW, atlasH) =
             Texture.size atlas
 
         uniforms =
-            { transform = makeTransform position_ size 0 (0.5, 0.5)
+            { transform = Render.makeTransform position_ spriteSize 0 (0.5, 0.5)
             , cameraProj = cameraProj
             , atlas = atlas
             , frameCount = frameCount
             , spriteIndex = spriteIndex
             , duration = duration
             , time = time
-            , spriteSize = size
+            , spriteSize = spriteSize
             , atlasSize = Vector2.fromInt atlasW atlasH
             }
     in
-        toEntity (AnimatedRect uniforms)
+        Render.toEntity (AnimatedRect uniforms)
+
+
+resolveFrames : Player -> (Int, Int, Float)
+resolveFrames player =
+
+    case player.direction of
+        North ->
+            walkFramesNorth
+
+        East ->
+            walkFramesEast
+
+        NorthEast ->
+            walkFramesEast
+
+        SouthEast ->
+            walkFramesEast
+
+        South ->
+            walkFramesSouth
+
+        West ->
+            walkFramesWest
+
+        NorthWest ->
+            walkFramesWest
+
+        SouthWest ->
+            walkFramesWest
+
+        _ ->
+            idleFrames

@@ -11,16 +11,16 @@ import WebGL.Texture as Texture exposing (Texture)
 import Collision
 import Render
 import Scene
-import Player exposing (Player)
 import Tiled exposing (Level, tileSet)
 import Camera exposing (Camera)
 import Object exposing (Object)
 import Crate
 import Npc
+import Player
 import Levels.Forest1 as Forest1
+import Dict exposing (Dict)
 
 
--- All the game levels
 levels =
     [ Forest1.level
     ]
@@ -29,10 +29,8 @@ levels =
 startLevel =
     Forest1.level
 
-
--- Old school 4:3 aspect ratio
 viewportSize =
-    vec2 400 300
+    vec2 400 300 -- Old school 4:3 aspect ratio
 
 
 vieportScale =
@@ -50,11 +48,6 @@ type Msg
     | ChangeLevel Level
 
 
--- type GameMsg
---     = CollisionWith (List Int) -- Side?
---     | NoOp
-
-
 -- MODEL
 
 
@@ -64,8 +57,7 @@ type GameState
 
 
 type alias Model =
-    { player : Player
-    , objects: List Object
+    { objects: Dict Int Object
     , resources : Resources
     , keys : Keyboard.Extra.State
     , time : Float
@@ -79,8 +71,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    { player = Player.initialModel
-    , objects = []
+    { objects = Dict.empty
     , resources = Resources.initialModel
     , keys = Keyboard.Extra.initialState
     , time = 0
@@ -101,8 +92,12 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeLevel level ->
+
+            let
+                objects = Scene.spawnObjects model.resources level.placeholders
+            in
             { model
-                | objects = Scene.spawnObjects model.resources level
+                | objects =  objects |> List.map (\object -> ( object.id, object ) ) |> Dict.fromList
                 , level = level
             }
                 ! []
@@ -153,19 +148,21 @@ tick dt model =
             dt + model.time
 
         -- Update all game objects
-        objects =
-            Scene.updateObjects dt model.objects
+        newObjects =
+            Scene.updateObjects dt model.keys model.objects
 
-        -- Update player
-        player =
-            tick_ dt model.keys model.objects model.player
+        newCamera =
+            case Dict.get Player.objectId model.objects of
+                Just target ->
+                    updateCamera dt target.position model.camera
+                Nothing ->
+                    model.camera
 
     in
         { model
-        | player = player
-        , objects = objects
+        | objects = newObjects
         , time = time
-        , camera = updateCamera dt player.position model.camera
+        , camera = newCamera
         }
 
 
@@ -219,23 +216,25 @@ relativeTo referencePosition referenceSize position =
             |> Vector2.add size
 
 
-tick_ : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
-tick_ dt keys objects player =
-    let
-        newPlayer =
-            Player.tick dt keys player
-
-        playerRect =
-            Player.toRectangle newPlayer
-
-        collidingObjects =
-            Object.colliding playerRect objects
-    in
-        if List.isEmpty collidingObjects then
-            newPlayer --(newPlayer, NoOp)
-        else
-            player -- (newPlayer, NoOp)
-            --(newPlayer, CollisionWith (List.map (\entity -> entity.id) collidingEntities))
+-- tick_ : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
+-- tick_ dt keys objects player =
+--     let
+--         newPlayer =
+--             Player.tick dt keys player
+--
+--         playerRect =
+--             Collision.rectangle player.position collisionSize
+--
+--             --Player.toRectangle newPlayer
+--
+--         collidingObjects =
+--             Object.colliding playerRect objects
+--     in
+--         if List.isEmpty collidingObjects then
+--             newPlayer --(newPlayer, NoOp)
+--         else
+--             player -- (newPlayer, NoOp)
+--             --(newPlayer, CollisionWith (List.map (\entity -> entity.id) collidingEntities))
 
 
 -- All the game assets (images, sounds, etc.)
@@ -258,7 +257,7 @@ gameAssets =
 
 
 renderPlaying : Model -> Html msg
-renderPlaying { player, objects, resources, time, viewport, camera, level } =
+renderPlaying { objects, resources, time, viewport, camera, level } =
     let
         cameraProj =
             Camera.view viewport camera
@@ -266,7 +265,7 @@ renderPlaying { player, objects, resources, time, viewport, camera, level } =
         scene =
             Scene.renderLevel resources cameraProj level
                 ++ (Scene.renderObjects time cameraProj objects)
-                ++ [ Player.render resources time cameraProj player ]
+                -- ++ [ Player.render resources time cameraProj player ]
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =
