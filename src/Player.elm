@@ -4,7 +4,6 @@ module Player exposing
     , render
     , assets
     , objectId
-    , collisionFilter
     )
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
