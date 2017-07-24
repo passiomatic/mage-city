@@ -4,6 +4,7 @@ module Player exposing
     , render
     , assets
     , objectId
+    , collisionFilter
     )
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
@@ -17,9 +18,8 @@ import Math.Matrix4 exposing (Mat4)
 
 import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
-import Collision exposing (Rectangle)
 import Object exposing (Object, Category(..), Player)
-
+import Bitwise exposing (or)
 
 atlasAsset : Asset
 atlasAsset =
@@ -73,6 +73,28 @@ collisionSize =
     vec2 26 30
 
 
+collisionBitMask =
+    or Object.collisionObjectCategory
+    ( or Object.collisionObstacleCategory Object.collisionTriggerCategory )
+
+
+{-| Player collide with...  -}
+-- collisionMask
+collisionFilter : Object -> Bool
+collisionFilter object =
+    case object.category of
+        TriggerCategory ->
+            True
+        ObstacleCategory ->
+            True
+        CrateCategory _ ->
+            True
+        NpcCategory _ ->
+            True
+        _ ->
+            False
+
+
 spawn : Resources -> Vec2 -> Object
 spawn resources position =
     let
@@ -91,6 +113,8 @@ spawn resources position =
         , name = "Player"
         , position = position
         , collisionSize = collisionSize
+        , collisionCategory = Object.collisionPlayerCategory
+        , collisionBitMask = collisionBitMask
         }
 
 
@@ -108,42 +132,15 @@ tick dt keys object player =
         {x, y} =
             Keyboard.arrows keys
 
+        velocty =
+            Vector2.scale walkSpeed (Vector2.fromInt x y)
+
         newPlayer = { player
-            | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
+            | velocity = velocty
             , direction = direction
         }
-
     in
-    { object
-        | position = Vector2.add object.position (Vector2.scale dt newPlayer.velocity)
-        , category = PlayerCategory newPlayer
-    }
-
-
-{- Calculate next player position with s = v * dt
--}
--- nextPosition : Float -> Player -> Object -> Object
--- nextPosition dt player ({ position } as object)  =
---     { object
---         | position = Vector2.add position (Vector2.scale dt player.velocity)
---     }
-
-
-{- Query keyboard keys to figure out walk velocity vector
--}
--- walk : Keyboard.State -> Player -> Object -> Object
--- walk keys player object =
---     let
---         direction =
---             Keyboard.arrowsDirection keys
---
---         {x, y} =
---             Keyboard.arrows keys
---     in
---         { player
---             | velocity = Vector2.scale walkSpeed (Vector2.fromInt x y)
---             , direction = direction
---         }
+    { object | category = PlayerCategory newPlayer }
 
 
 -- RENDERING

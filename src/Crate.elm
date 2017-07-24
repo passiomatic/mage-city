@@ -61,6 +61,8 @@ spawn resources id name position =
         , name = name
         , position = position
         , collisionSize = collisionSize
+        , collisionCategory = Object.collisionObjectCategory
+        , collisionBitMask = 0 -- FIXME
         }
 
 
@@ -84,7 +86,7 @@ render time cameraProj { position } { atlas, isOpen } =
             , atlasSize = Vector2.fromInt atlasW atlasH
             , spriteSize = spriteSize
             , spriteIndex =
-                if isOpen then 0 else 1
+                if isOpen then 1 else 0
             }
     in
         Render.toEntity (TexturedRect uniforms)

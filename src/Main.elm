@@ -158,9 +158,12 @@ tick dt model =
                 Nothing ->
                     model.camera
 
+        newObjects2 =
+            Scene.resolveCollisions dt newObjects
+
     in
         { model
-        | objects = newObjects
+        | objects = newObjects2
         , time = time
         , camera = newCamera
         }
@@ -216,27 +219,6 @@ relativeTo referencePosition referenceSize position =
             |> Vector2.add size
 
 
--- tick_ : Float -> Keyboard.Extra.State -> List Object -> Player -> Player
--- tick_ dt keys objects player =
---     let
---         newPlayer =
---             Player.tick dt keys player
---
---         playerRect =
---             Collision.rectangle player.position collisionSize
---
---             --Player.toRectangle newPlayer
---
---         collidingObjects =
---             Object.colliding playerRect objects
---     in
---         if List.isEmpty collidingObjects then
---             newPlayer --(newPlayer, NoOp)
---         else
---             player -- (newPlayer, NoOp)
---             --(newPlayer, CollisionWith (List.map (\entity -> entity.id) collidingEntities))
-
-
 -- All the game assets (images, sounds, etc.)
 gameAssets =
     let
@@ -249,7 +231,7 @@ gameAssets =
     in
         -- Add all the assets from levels
         assets
-            |> List.append (List.map (\level -> level.assets) levels)
+            |> List.append (List.map .assets levels)
             |> List.concat
 
 

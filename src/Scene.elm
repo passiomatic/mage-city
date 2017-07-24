@@ -4,6 +4,7 @@ module Scene
         , updateObjects
         , renderObjects
         , renderLevel
+        , resolveCollisions
         )
 
 {-| Scene creation, updating and rendering functions
@@ -19,11 +20,13 @@ import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize, tileSet)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Category(..))
+import Object exposing (Object, Player, Category(..))
 import Player
 import Crate
 import Npc
 import Dict exposing (Dict)
+import Collision exposing (Rectangle)
+import Keyboard.Extra as Keyboard exposing (Direction(..))
 
 
 -- CREATION
@@ -54,6 +57,8 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
                 , name = name
                 , position = position
                 , collisionSize = size
+                , collisionCategory = Object.collisionTriggerCategory
+                , collisionBitMask = 0
                 }
 
         ( "ObstacleCategory", RectangleGeometry { position, size } ) ->
@@ -63,6 +68,8 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
                 , name = name
                 , position = position
                 , collisionSize = size
+                , collisionCategory = Object.collisionObstacleCategory
+                , collisionBitMask = 0
                 }
 
         ( "CrateCategory", RectangleGeometry { position } ) ->
@@ -84,6 +91,7 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
 
 {-| Update all the scene objects
 -}
+updateObjects : Float -> Keyboard.State -> Dict Int Object -> Dict Int Object
 updateObjects dt keys objects =
     let
         updater : Int -> Object -> Object
@@ -100,6 +108,64 @@ updateObjects dt keys objects =
                     object
     in
         Dict.map updater objects
+
+
+{-| Check every object against the others, avoiding dumb combinations
+and update each object state accordingly
+-}
+resolveCollisions : Float -> Dict Int Object -> Dict Int Object
+resolveCollisions dt objects =
+    let
+        resolver : Int -> Object -> Object
+        resolver id object =
+            case object.category of
+                PlayerCategory player ->
+                    resolvePlayerCollisions dt object player objects
+
+                -- TODO
+                -- NpcCategory npc ->
+
+                _ ->
+                    -- Just return the original object
+                    object
+    in
+        Dict.map resolver objects
+
+
+
+resolvePlayerCollisions : Float -> Object -> Player -> Dict Int Object -> Object
+resolvePlayerCollisions dt playerObject player objects =
+
+    let
+        newPlayerObject =
+            Object.move dt player.velocity playerObject
+
+        collidingObjects =
+            Dict.values objects
+                |> List.filter (Object.canCollide playerObject)
+                |> List.filter (Object.isColliding (Object.toRectangle newPlayerObject))
+
+        updater : Object -> Object -> Object
+        updater otherObject playerObject =
+            case otherObject.category of
+                ObstacleCategory ->
+                    playerObject -- Just block player, back to previous position
+
+                NpcCategory _ ->
+                    playerObject
+
+                CrateCategory _ ->
+                    playerObject
+
+                _ ->
+                    newPlayerObject
+
+    in
+        if List.isEmpty collidingObjects then
+            newPlayerObject
+        else
+            List.foldl updater playerObject collidingObjects
+
 
 
 

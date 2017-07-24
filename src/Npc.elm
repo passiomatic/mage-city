@@ -86,6 +86,8 @@ spawn resources id name position =
         , name = name
         , position = position
         , collisionSize = collisionSize
+        , collisionCategory = Object.collisionObjectCategory
+        , collisionBitMask = 0 -- FIXME
         }
 
 
