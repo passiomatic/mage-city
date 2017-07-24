@@ -28,10 +28,10 @@ The following features have been implemented:
 * Keyboard input
 * Player walk movements
 * Game assets loading (textures only)
+* Game entities (initially just collectable items and triggers)
 
 ## Possible roadmap
 
-* Game entities (initially just collectable items and triggers)
 * Text rendering
 * Player inventory
 * Dialog system
