@@ -78,23 +78,6 @@ collisionBitMask =
     ( or Object.collisionObstacleCategory Object.collisionTriggerCategory )
 
 
-{-| Player collide with...  -}
--- collisionMask
-collisionFilter : Object -> Bool
-collisionFilter object =
-    case object.category of
-        TriggerCategory ->
-            True
-        ObstacleCategory ->
-            True
-        CrateCategory _ ->
-            True
-        NpcCategory _ ->
-            True
-        _ ->
-            False
-
-
 spawn : Resources -> Vec2 -> Object
 spawn resources position =
     let
