@@ -150,21 +150,20 @@ tick dt model =
 
         -- Update all game objects
         newObjects =
-            Scene.updateObjects dt model.keys model.objects
+            model.objects
+                |> Scene.updateObjects dt model.keys
+                |> Scene.resolveCollisions dt
 
+        -- Adjust camera to the resolved target position
         newCamera =
-            case Dict.get Player.objectId model.objects of
+            case Dict.get Player.objectId newObjects of
                 Just target ->
                     updateCamera dt target.position model.camera
                 Nothing ->
                     model.camera
-
-        newObjects2 =
-            Scene.resolveCollisions dt newObjects
-
     in
         { model
-        | objects = newObjects2
+        | objects = newObjects
         , time = time
         , camera = newCamera
         }
