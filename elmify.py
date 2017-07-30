@@ -146,12 +146,11 @@ def serialize_tile_layer(level, layer):
         level['tileset_size'], layer['data'])
 
     fields = {
-        "name"      : name,
+        "name"      : "%s.%s" % (level['name'], name),
         "size"      : Vec2((w, h)),
         "position"  : Vec2((x, y)),
         # TODO "opacity"   : layer['opacity'],
         "visible"   : layer['visible'],
-        "lutName" : "%s.%s" % (level['name'], name)
     }
     return serialize_record(fields)
 

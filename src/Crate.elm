@@ -2,7 +2,6 @@ module Crate
     exposing
         ( spawn
         , render
-        , assets
         )
 
 {-| Crate game object implementation.
@@ -18,18 +17,7 @@ import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Crate)
-
-
-atlasAsset : Asset
-atlasAsset =
-    { name = "Crate"
-    , url = "images/crate.png"
-    }
-
-
-assets =
-    [ atlasAsset
-    ]
+import Assets
 
 
 zPosition =
@@ -47,8 +35,11 @@ collisionSize =
 spawn : Resources -> Int -> String -> Vec2 -> Object
 spawn resources id name position =
     let
+        miscAsset =
+            Assets.misc
+
         atlas =
-            Resources.getTexture atlasAsset.name resources
+            Resources.getTexture miscAsset.name resources
 
         category =
             CrateCategory

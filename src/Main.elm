@@ -11,7 +11,7 @@ import WebGL.Texture as Texture exposing (Texture)
 import Collision
 import Render
 import Scene
-import Tiled exposing (Level, tileSet)
+import Tiled exposing (Level)
 import Camera exposing (Camera)
 import Object exposing (Object)
 import Crate
@@ -19,7 +19,7 @@ import Npc
 import Player
 import Levels.Forest1 as Forest1
 import Dict exposing (Dict)
-
+import Assets
 
 levels =
     [ Forest1.level
@@ -28,6 +28,7 @@ levels =
 
 startLevel =
     Forest1.level
+
 
 viewportSize =
     vec2 400 300 -- Old school 4:3 aspect ratio
@@ -223,10 +224,10 @@ relativeTo referencePosition referenceSize position =
 gameAssets =
     let
         assets =
-            [ List.singleton tileSet
-            , Player.assets
-            , Crate.assets
-            , Npc.assets
+            [ List.singleton Assets.tileSet
+            , List.singleton Assets.misc
+            , List.singleton Assets.player
+            , List.singleton Assets.npc
             ]
     in
         -- Add all the assets from levels
@@ -247,7 +248,6 @@ renderPlaying { objects, resources, time, viewport, camera, level } =
         scene =
             Scene.renderLevel resources cameraProj level
                 ++ (Scene.renderObjects time cameraProj objects)
-                -- ++ [ Player.render resources time cameraProj player ]
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =

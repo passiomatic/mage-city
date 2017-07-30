@@ -18,7 +18,7 @@ import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
-import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize, tileSet)
+import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Player, Category(..))
 import Player
@@ -27,6 +27,7 @@ import Npc
 import Dict exposing (Dict)
 import Collision exposing (Rectangle)
 import Keyboard.Extra as Keyboard exposing (Direction(..))
+import Assets
 
 
 -- CREATION
@@ -132,7 +133,6 @@ resolveCollisions dt objects =
         Dict.map resolver objects
 
 
-
 resolvePlayerCollisions : Float -> Object -> Player -> Dict Int Object -> Object
 resolvePlayerCollisions dt playerObject player objects =
 
@@ -192,11 +192,14 @@ renderLayer resources cameraProj layer zPosition =
         position =
             vec3 x y zPosition
 
+        tileSetAsset =
+            Assets.tileSet
+
         atlas =
-            Resources.getTexture tileSet.name resources
+            Resources.getTexture tileSetAsset.name resources
 
         lut =
-            Resources.getTexture layer.lutName resources
+            Resources.getTexture layer.name resources
 
         ( atlasW, atlasH ) =
             Texture.size atlas

@@ -3,7 +3,6 @@ module Npc
         ( spawn
         , tick
         , render
-        , assets
         )
 
 {-| NPC (Non-Player Character) game object implementation.
@@ -20,18 +19,7 @@ import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Npc)
-
-
-atlasAsset : Asset
-atlasAsset =
-    { name = "Npc"
-    , url = "images/npc-1.png"
-    }
-
-
-assets =
-    [ atlasAsset
-    ]
+import Assets
 
 
 walkFramesNorth =
@@ -62,8 +50,6 @@ spriteSize =
     vec2 32 32
 
 
-
--- Smaller than sprite size
 collisionSize =
     vec2 26 30
 
@@ -71,8 +57,11 @@ collisionSize =
 spawn : Resources -> Int -> String -> Vec2 -> Object
 spawn resources id name position =
     let
+        npcAsset =
+            Assets.npc
+
         atlas =
-            Resources.getTexture atlasAsset.name resources
+            Resources.getTexture npcAsset.name resources
 
         category =
             NpcCategory

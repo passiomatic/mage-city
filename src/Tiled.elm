@@ -3,7 +3,6 @@ module Tiled exposing
     , Layer
     , Placeholder
     , Geometry(..)
-    , tileSet
     , tileSize
     )
 
@@ -18,13 +17,6 @@ import Resources exposing (Asset)
 
 tileSize =
     vec2 32 32
-
-
-{-| All the levels share the same tile set -}
-tileSet =
-    { name = "City"
-    , url = "images/mage-city-tileset.png"
-    }
 
 
 {-| Game level
@@ -62,5 +54,4 @@ type alias Layer =
     , visible : Bool
     , position : Vec2
     , size : Vec2
-    , lutName : String
     }
