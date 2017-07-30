@@ -97,6 +97,11 @@ void main() {
     vec2 uv = vec2(dx * vcoord.x + col * dx, 1.0 - dy - row * dy + dy * vcoord.y);
 
     gl_FragColor = texture2D(atlas, uv);
+
+    // Discard the transparent color
+    if (gl_FragColor.a == 0.0) {
+      discard;
+    }
 }
 |]
 
@@ -228,6 +233,11 @@ void main () {
         1.0 - unitSpriteSize.y - row * unitSpriteSize.y + unitSpriteSize.y * vcoord.y);
 
     gl_FragColor = texture2D(atlas, uv);
+
+    // Discard the transparent color
+    if (gl_FragColor.a == 0.0) {
+      discard;
+    }
 
 }
 |]

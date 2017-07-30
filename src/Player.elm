@@ -124,24 +124,37 @@ tick dt keys object player =
 
 -- RENDERING
 
+render : Float -> Mat4 -> Object -> Player -> List Entity
+render time cameraProj { position } ({ atlas } as player) =
 
-render : Float -> Mat4 -> Object -> Player -> Entity
-render time cameraProj { position } ({ velocity, atlas, direction } as player) =
+    let
+        (x, y) =
+            Vector2.toTuple position
+
+        playerPosition =
+            vec3 x y zPosition
+
+        shadowPosition =
+            vec3 x (y - 4) (zPosition - 0.01)
+
+    in
+        [ renderPlayer time cameraProj playerPosition player
+        , Render.renderSprite cameraProj shadowPosition atlas spriteSize shadowSpriteIndex
+        ]
+
+
+renderPlayer : Float -> Mat4 -> Vec3 -> Player -> Entity
+renderPlayer time cameraProj position ({ atlas } as player) =
 
     let
         (spriteIndex, frameCount, duration) =
             resolveFrames player
 
-        (x, y) =
-            Vector2.toTuple position
-
-        position_ = vec3 x y zPosition
-
         (atlasW, atlasH) =
             Texture.size atlas
 
         uniforms =
-            { transform = Render.makeTransform position_ spriteSize 0 (0.5, 0.5)
+            { transform = Render.makeTransform position spriteSize 0 (0.5, 0.5)
             , cameraProj = cameraProj
             , atlas = atlas
             , frameCount = frameCount
@@ -153,27 +166,6 @@ render time cameraProj { position } ({ velocity, atlas, direction } as player) =
             }
     in
         Render.toEntity (AnimatedRect uniforms)
-
-
--- renderShadow : Mat4 -> Vec2 -> Texture -> Entity
--- renderShadow cameraProj position atlas =
---     let
---         position_ =
---             vec3 (Vector2.getX position) (Vector2.getY position) zPosition
---
---         ( atlasW, atlasH ) =
---             Texture.size atlas
---
---         uniforms =
---             { transform = Render.makeTransform position_ spriteSize 0 ( 0.5, 0.5 )
---             , cameraProj = cameraProj
---             , atlas = atlas
---             , atlasSize = Vector2.fromInt atlasW atlasH
---             , spriteSize = spriteSize
---             , spriteIndex = shadowSpriteIndex
---             }
---     in
---         Render.toEntity (TexturedRect uniforms)
 
 
 resolveFrames : Player -> (Int, Int, Float)

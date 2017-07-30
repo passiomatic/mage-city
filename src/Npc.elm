@@ -42,6 +42,9 @@ idleFrames =
     ( 16, 2, 2.8 )
 
 
+shadowSpriteIndex =
+    3
+
 zPosition =
     0.33 -- Just behind the player
 
@@ -97,24 +100,36 @@ tick dt object npc =
 
 -- RENDERING
 
+render : Float -> Mat4 -> Object -> Npc -> List Entity
+render time cameraProj { position } ({ atlas } as npc) =
 
-render : Float -> Mat4 -> Object -> Npc -> Entity
-render time cameraProj { position } ({ velocity, atlas } as npc) =
+    let
+        (x, y) =
+            Vector2.toTuple position
+
+        npcPosition =
+            vec3 x y zPosition
+
+        shadowPosition =
+            vec3 x (y - 4) (zPosition - 0.01)
+
+    in
+        [ renderNpc time cameraProj npcPosition npc
+        , Render.renderSprite cameraProj shadowPosition atlas spriteSize shadowSpriteIndex
+        ]
+
+
+renderNpc : Float -> Mat4 -> Vec3 -> Npc -> Entity
+renderNpc time cameraProj position ({ atlas } as npc) =
     let
         (spriteIndex, frameCount, duration) =
             resolveFrames npc
-
-        ( x, y ) =
-            Vector2.toTuple position
-
-        position_ =
-            vec3 x y zPosition
 
         ( atlasW, atlasH ) =
             Texture.size atlas
 
         uniforms =
-            { transform = Render.makeTransform position_ spriteSize 0 ( 0.5, 0.5 )
+            { transform = Render.makeTransform position spriteSize 0 ( 0.5, 0.5 )
             , cameraProj = cameraProj
             , atlas = atlas
             , frameCount = frameCount

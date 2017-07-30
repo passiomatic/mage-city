@@ -226,13 +226,13 @@ renderObjects time cameraProj objects =
         renderer id object =
             case object.category of
                 PlayerCategory player ->
-                    (::) (Player.render time cameraProj object player)
+                    (++) (Player.render time cameraProj object player)
+
+                NpcCategory npc ->
+                    (++) (Npc.render time cameraProj object npc)
 
                 CrateCategory crate ->
                     (::) (Crate.render time cameraProj object crate)
-
-                NpcCategory npc ->
-                    (::) (Npc.render time cameraProj object npc)
 
                 _ ->
                     identity

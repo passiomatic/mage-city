@@ -2,6 +2,7 @@ module Render exposing
     ( Vertex
     , unitSquareMesh
     , makeTransform
+    , renderSprite
     , toEntity
     , toHtml
     , Uniform(..)
@@ -18,8 +19,10 @@ import Math.Matrix4 as Matrix4 exposing (Mat4)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Vector3Extra as Vector3
+import Vector2Extra as Vector2
 
-import WebGL as WebGL exposing (Texture, Mesh, Entity, Option)
+import WebGL exposing (Mesh, Entity, Option)
+import WebGL.Texture as Texture exposing (Texture)
 import WebGL.Settings.Blend as Blend
 import WebGL.Settings.DepthTest as DepthTest
 
@@ -137,6 +140,27 @@ entitySettings =
     [ DepthTest.default
     , Blend.add Blend.one Blend.oneMinusSrcAlpha
     ]
+
+
+{-| Render a sprite at given position
+-}
+renderSprite : Mat4 -> Vec3 -> Texture -> Vec2 -> Int -> Entity
+renderSprite cameraProj position atlas spriteSize spriteIndex =
+
+    let
+        ( atlasW, atlasH ) =
+            Texture.size atlas
+
+        uniforms =
+            { transform = makeTransform position spriteSize 0 ( 0.5, 0.5 )
+            , cameraProj = cameraProj
+            , atlas = atlas
+            , atlasSize = Vector2.fromInt atlasW atlasH
+            , spriteSize = spriteSize
+            , spriteIndex = spriteIndex
+            }
+    in
+        toEntity (TexturedRect uniforms)
 
 
 toEntity: Uniform -> Entity
