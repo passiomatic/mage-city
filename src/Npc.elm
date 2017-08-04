@@ -209,22 +209,10 @@ resolveFrames npc =
         East ->
             walkFramesEast
 
-        NorthEast ->
-            walkFramesEast
-
-        SouthEast ->
-            walkFramesEast
-
         South ->
             walkFramesSouth
 
         West ->
-            walkFramesWest
-
-        NorthWest ->
-            walkFramesWest
-
-        SouthWest ->
             walkFramesWest
 
         _ ->
