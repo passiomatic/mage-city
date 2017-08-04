@@ -1,4 +1,4 @@
-all: levels build
+all: build
 
 levels:
 	python elmify.py ./assets/Forest1.json .

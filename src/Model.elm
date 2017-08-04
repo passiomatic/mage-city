@@ -5,7 +5,7 @@ module Model
         , model
         )
 
-import Keyboard.Extra
+import Keyboard.Extra as Keyboard exposing (Key)
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Vector2Extra as Vector2
@@ -32,7 +32,7 @@ type GameState
 type alias Model =
     { objects: Dict Int Object
     , resources : Resources
-    , keys : Keyboard.Extra.State
+    , pressedKeys : List Key
     , time : Float
     , viewport : Vec2
     , camera : Camera
@@ -45,7 +45,7 @@ model : Model
 model =
     { objects = Dict.empty
     , resources = Resources.initialModel
-    , keys = Keyboard.Extra.initialState
+    , pressedKeys = []
     , time = 0
     , viewport = viewportSize
     , camera = Camera.fixedArea viewportSize (vec2 250 140)

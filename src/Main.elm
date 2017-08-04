@@ -4,7 +4,7 @@ import Html exposing (Html, text)
 import Task
 import AnimationFrame
 import Window
-import Keyboard.Extra
+import Keyboard.Extra as Keyboard
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import WebGL.Texture as Texture exposing (Texture)
@@ -47,7 +47,7 @@ type Msg
     = ScreenSize Window.Size
     | Tick Float
     | Resources Resources.Msg
-    | Keys Keyboard.Extra.Msg
+    | KeyMsg Keyboard.Msg
       -- Game messages
     | ChangeLevel Level
 
@@ -94,15 +94,10 @@ update msg model =
                     }
                         ! []
 
-        Keys keyMsg ->
-            let
-                keys =
-                    Keyboard.Extra.update keyMsg model.keys
-            in
-                { model
-                    | keys = keys
-                }
-                    ! []
+        KeyMsg keyMsg ->
+            ( { model | pressedKeys = Keyboard.update keyMsg model.pressedKeys }
+            , Cmd.none
+            )
 
 
 changeLevel : Level -> Model -> Model
@@ -254,7 +249,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Window.resizes ScreenSize
-        , Sub.map Keys Keyboard.Extra.subscriptions
+        , Sub.map KeyMsg Keyboard.subscriptions
         , AnimationFrame.diffs ((\dt -> dt / 1000) >> Tick)
         ]
 

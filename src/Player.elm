@@ -107,10 +107,10 @@ update : Model -> Object -> Player -> Object
 update model object player =
     let
         direction =
-            Keyboard.arrowsDirection model.keys
+            Keyboard.wasdDirection model.pressedKeys
 
         { x, y } =
-            Keyboard.arrows model.keys
+            Keyboard.wasd model.pressedKeys
 
         velocty =
             Vector2.scale walkSpeed (Vector2.fromInt x y)
