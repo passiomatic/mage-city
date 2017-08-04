@@ -1,7 +1,6 @@
 module Camera exposing (Camera, fixedArea, getViewSize, view, moveBy, moveTo, follow)
 
-{-|
-This provides a basic camera.
+{-| This provides a basic camera
 -}
 
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
@@ -10,29 +9,35 @@ import Math.Matrix4 as Matrix4 exposing (Mat4)
 import Vector2Extra as Vector2 exposing (fromInt)
 import Helpers as Helpers exposing (..)
 
+
 {-|
 A camera represents how to render the virtual world. It's essentially a
-transformation from virtual game coordinates to pixel coordinates on the screen.
+transformation from virtual game coordinates to pixel coordinates on the screen
 -}
 type alias Camera =
     { area : Float
     , position : Vec2
     }
 
+
 {-|
 A camera that always shows the same viewport area. This is useful in a top down game.
 This means that you probably want to specify the area property like this:
 
-    fixedArea (16*10) (x, y)
+    fixedArea (16, 10) (x, y)
 
-This would show 16 by 10 units _if_ the game is displayed in a 16:10 viewport.
-However, in a 4:3 viewport it would show sqrt(16*10*4/3)=14.6 by sqrt(16*10*3/4)=10.95 units.
+This would show 16 by 10 units _if_ the game is displayed in a 16:10 viewport. However,
+in a 4:3 viewport it would show sqrt(16*10*4/3)=14.6 by sqrt(16*10*3/4)=10.95 units
 -}
-fixedArea : Float -> Vec2 -> Camera
-fixedArea area position =
-    { area = area
-    , position = position
-    }
+fixedArea : Vec2 -> Vec2 -> Camera
+fixedArea size position =
+    let
+        ( w, h ) =
+            Vector2.toTuple size
+    in
+        { area = w * h
+        , position = position
+        }
 
 
 -- TODO remove me
@@ -110,6 +115,6 @@ follow speed dt targetPosition ({ position } as camera) =
             Vector2.sub targetPosition position
 
         newPosition =
-            (Vector2.add position (Vector2.scale (speed * dt) vectorToTarget))
+            Vector2.add position (Vector2.scale (speed * dt) vectorToTarget)
     in
         { camera | position = newPosition }

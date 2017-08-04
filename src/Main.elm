@@ -8,7 +8,6 @@ import Keyboard.Extra
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import WebGL.Texture as Texture exposing (Texture)
-import Collision
 import Render
 import Scene
 import Tiled exposing (Level)
@@ -18,18 +17,22 @@ import Crate
 import Npc
 import Player
 import Levels.Forest1 as Forest1
+--import Levels.City1 as City1
 import Dict exposing (Dict)
 import Assets
+import Model exposing (Model, GameState(..))
 
 levels =
     [ Forest1.level
+    --, City1.level
     ]
 
-
+-- TODO remove me, use Model.viewportSize
 startLevel =
     Forest1.level
 
 
+-- TODO remove me, use Model.viewportSize
 viewportSize =
     vec2 400 300 -- Old school 4:3 aspect ratio
 
@@ -49,38 +52,9 @@ type Msg
     | ChangeLevel Level
 
 
--- MODEL
-
-
-type GameState
-    = Loading
-    | Playing
-
-
-type alias Model =
-    { objects: Dict Int Object
-    , resources : Resources
-    , keys : Keyboard.Extra.State
-    , time : Float
-    , viewport : Vec2
-    , camera : Camera
-    , level : Level
-    , state : GameState
-    }
-
-
-
 init : ( Model, Cmd Msg )
 init =
-    { objects = Dict.empty
-    , resources = Resources.initialModel
-    , keys = Keyboard.Extra.initialState
-    , time = 0
-    , viewport = viewportSize
-    , camera = Camera.fixedArea (Vector2.getX viewportSize * Vector2.getY viewportSize) (vec2 200 150)
-    , level = startLevel
-    , state = Loading
-    }
+    Model.model
         ! [ getScreenSize
           , Cmd.map Resources (Resources.loadAssets gameAssets)
           ]
@@ -93,15 +67,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangeLevel level ->
-
-            let
-                objects = Scene.spawnObjects model.resources level.placeholders
-            in
-            { model
-                | objects =  objects |> List.map (\object -> ( object.id, object ) ) |> Dict.fromList
-                , level = level
-            }
-                ! []
+            changeLevel level model ! []
 
         ScreenSize { width, height } ->
             --{ model | screen = ( width, height ) } ! []
@@ -116,14 +82,12 @@ update msg model =
                     Resources.update msg model.resources
             in
                 if Resources.isLoadingComplete gameAssets newResources then
-                    { model
+                    ({ model
                         | resources = newResources
                         , state = Playing
                     }
-                        -- Trigger a ChangeLevel msg
-                        -- See: https://medium.com/elm-shorts/how-to-turn-a-msg-into-a-cmd-msg-in-elm-5dd095175d84
                         |>
-                            update (ChangeLevel startLevel)
+                            changeLevel startLevel) ! []
                 else
                     { model
                         | resources = newResources
@@ -141,6 +105,17 @@ update msg model =
                     ! []
 
 
+changeLevel : Level -> Model -> Model
+changeLevel level model =
+    let
+        objects = Scene.spawnObjects model.resources level.placeholders
+    in
+    { model
+        | objects = objects
+        , level = level
+    }
+
+
 tick : Float -> Model -> Model
 tick dt model =
 
@@ -151,7 +126,7 @@ tick dt model =
         -- Update all game objects
         newObjects =
             model.objects
-                |> Scene.updateObjects dt model.keys
+                |> Scene.update model
                 |> Scene.resolveCollisions dt
 
         -- Adjust camera to the resolved target position
@@ -245,8 +220,7 @@ renderPlaying { objects, resources, time, viewport, camera, level } =
             Camera.view viewport camera
 
         scene =
-            Scene.renderLevel resources cameraProj level
-                ++ (Scene.renderObjects time cameraProj objects)
+            Scene.render resources time cameraProj level objects
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =

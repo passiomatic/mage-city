@@ -10,10 +10,11 @@ module Tiled exposing
 is supported by current implementation. For additional details see:
 http://doc.mapeditor.org/reference/tmx-map-format/
 -}
-import Math.Vector2 as Vector2 exposing (Vec2, vec2)
+import Math.Vector2 exposing (Vec2, vec2)
+import Math.Vector3 exposing (Vec3, vec3)
 import Color exposing (Color)
 import Resources exposing (Asset)
-
+import Dict exposing (Dict)
 
 tileSize =
     vec2 32 32
@@ -26,7 +27,7 @@ type alias Level =
     , background : Color
     , assets : List Asset
     , layers : List Layer
-    , placeholders : List Placeholder
+    , placeholders : Dict Int Placeholder
     }
 
 
@@ -43,7 +44,7 @@ type alias Placeholder =
 
 type Geometry
     = RectangleGeometry { position : Vec2, size : Vec2 }
-    | PolygonGeometry  { points : List Vec2 }
+    | PolygonGeometry { points : List Vec2 }
 
 
 {-| Tile layer
@@ -51,7 +52,7 @@ type Geometry
 type alias Layer =
     { name : String
     -- TODO opacity : Float
-    , visible : Bool
-    , position : Vec2
+    , isVisible : Bool
+    , position : Vec3
     , size : Vec2
     }

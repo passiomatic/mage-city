@@ -16,34 +16,47 @@ fromInt x y =
 toDirection : Vec2 -> Direction
 toDirection value =
     let
-        newValue = value
+        (x, y) = value
             |> Vector2.normalize
             |> Vector2.toTuple
+
+        isRight =
+            x > 0.5
+
+        isMiddleX =
+            (x < 0.5) && (x > -0.5)
+
+        isLeft =
+            x < -0.5
+
+        isTop =
+            y > 0.5
+
+        isMiddleY =
+            (y < 0.5) && (y > -0.5)
+
+        isBottom =
+            y < -0.5
+
     in
-    case newValue of
-        ( 0, 1 ) ->
-            North
+        case (isLeft, isMiddleX, isRight, isTop, isMiddleY, isBottom) of
+            ( False, True, False, True, False, False) ->
+                North
 
-        ( 1, 1 ) ->
-            NorthEast
+            ( False, False, True, False, True, False ) ->
+                East
 
-        ( 1, 0 ) ->
-            East
+            ( False, True, False, False, False, True)  ->
+                South
 
-        ( 1, -1 ) ->
-            SouthEast
+            ( True, False, False, False, False, True)  ->
+                South
 
-        ( 0, -1 ) ->
-            South
+            ( True, False, False, False, True, False ) ->
+                West
 
-        ( -1, -1 ) ->
-            SouthWest
+            ( True, False, False, True, False, False ) ->
+                West
 
-        ( -1, 0 ) ->
-            West
-
-        ( -1, 1 ) ->
-            NorthWest
-
-        _ ->
-            NoDirection
+            _ ->
+                NoDirection

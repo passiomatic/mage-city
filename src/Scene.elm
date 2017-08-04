@@ -1,9 +1,8 @@
 module Scene
     exposing
         ( spawnObjects
-        , updateObjects
-        , renderObjects
-        , renderLevel
+        , update
+        , render
         , resolveCollisions
         )
 
@@ -20,38 +19,38 @@ import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Player, Category(..))
+import Object exposing (Object, Player, Npc, Category(..))
 import Player
 import Crate
 import Npc
 import Dict exposing (Dict)
-import Collision exposing (Rectangle)
 import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Assets
+import Model exposing (Model)
 
 
 -- CREATION
 
 
-spawnObjects : Resources -> List Placeholder -> List Object
+spawnObjects : Resources -> Dict Int Placeholder -> Dict Int Object
 spawnObjects resources placeholders =
     let
-        spawner : Placeholder -> (List Object -> List Object)
-        spawner placeholder =
+        spawner : Int -> Placeholder -> (Dict Int Object -> Dict Int Object)
+        spawner _ placeholder =
             case spawnObject resources placeholder of
                 Just object ->
-                    (::) object
+                    Dict.insert object.id object
 
                 Nothing ->
                     identity
     in
-        List.foldl spawner [] placeholders
+        Dict.foldl spawner Dict.empty placeholders
 
 
 spawnObject : Resources -> Placeholder -> Maybe Object
 spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
     case ( categoryName, geometry ) of
-        ( "TriggerCategory", RectangleGeometry { position, size } ) ->
+        ( "Trigger", RectangleGeometry { position, size } ) ->
             Just
                 { category = TriggerCategory
                 , id = id
@@ -62,7 +61,7 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
                 , collisionBitMask = 0
                 }
 
-        ( "ObstacleCategory", RectangleGeometry { position, size } ) ->
+        ( "Obstacle", RectangleGeometry { position, size } ) ->
             Just
                 { category = ObstacleCategory
                 , id = id
@@ -73,17 +72,17 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
                 , collisionBitMask = 0
                 }
 
-        ( "CrateCategory", RectangleGeometry { position } ) ->
+        ( "Crate", RectangleGeometry { position } ) ->
             Just (Crate.spawn resources id name position)
 
-        ( "NpcCategory", RectangleGeometry { position } ) ->
+        ( "Npc", RectangleGeometry { position } ) ->
             Just (Npc.spawn resources id name position)
 
-        ( "PlayerCategory", RectangleGeometry { position } ) ->
+        ( "Player", RectangleGeometry { position } ) ->
             Just (Player.spawn resources position)
 
         _ ->
-            Debug.log ("Could not spawn object " ++ categoryName) Nothing
+            Debug.log ("Cannot spawn object with category " ++ categoryName ++ ", skipped") Nothing
 
 
 
@@ -92,23 +91,23 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
 
 {-| Update all the scene objects
 -}
-updateObjects : Float -> Keyboard.State -> Dict Int Object -> Dict Int Object
-updateObjects dt keys objects =
+update : Model -> Dict Int Object -> Dict Int Object
+update model objects =
     let
         updater : Int -> Object -> Object
         updater id object =
             case object.category of
                 PlayerCategory player ->
-                    Player.tick dt keys object player
+                    Player.update model object player
 
                 NpcCategory npc ->
-                    Npc.tick dt object npc
+                    Npc.update model object npc
 
                 _ ->
                     -- Just return the original object
                     object
     in
-        Dict.map updater objects
+        Dict.map updater model.objects
 
 
 {-| Check every object against the others, avoiding dumb combinations
@@ -123,8 +122,8 @@ resolveCollisions dt objects =
                 PlayerCategory player ->
                     resolvePlayerCollisions dt object player objects
 
-                -- TODO
-                -- NpcCategory npc ->
+                NpcCategory npc ->
+                    resolveNpcCollisions dt object npc objects
 
                 _ ->
                     -- Just return the original object
@@ -141,15 +140,13 @@ resolvePlayerCollisions dt playerObject player objects =
             Object.move dt player.velocity playerObject
 
         collidingObjects =
-            Dict.values objects
-                |> List.filter (Object.canCollide playerObject)
-                |> List.filter (Object.isColliding (Object.toRectangle newPlayerObject))
+            Object.colliding (Dict.values objects) newPlayerObject
 
         updater : Object -> Object -> Object
         updater otherObject playerObject =
             case otherObject.category of
                 ObstacleCategory ->
-                    playerObject -- Just block player, back to previous position
+                    playerObject -- Just block player, pass previous position
 
                 NpcCategory _ ->
                     playerObject
@@ -167,54 +164,77 @@ resolvePlayerCollisions dt playerObject player objects =
             List.foldl updater playerObject collidingObjects
 
 
+resolveNpcCollisions : Float -> Object -> Npc -> Dict Int Object -> Object
+resolveNpcCollisions dt npcObject npc objects =
+
+    let
+        newNpcObject =
+            Object.move dt npc.velocity npcObject
+
+        collidingObjects =
+            Object.colliding (Dict.values objects) newNpcObject
+
+        updater : Object -> Object -> Object
+        updater otherObject playerObject =
+            case otherObject.category of
+                ObstacleCategory ->
+                    npcObject -- Just block NPC, pass previous position
+
+                PlayerCategory _ ->
+                    npcObject
+
+                _ ->
+                    newNpcObject
+
+    in
+        if List.isEmpty collidingObjects then
+            newNpcObject
+        else
+            List.foldl updater npcObject collidingObjects
 
 
 -- RENDERING
 
 
-renderLevel : Resources -> Mat4 -> Level -> List Entity
-renderLevel resources cameraProj level =
-    level.layers
-        |> List.filter .visible
-        |> List.indexedMap
-            (\index layer ->
-                -- TODO Assign z value from Tiled editor
-                renderLayer resources cameraProj layer (toFloat index / 10)
-            )
+render : Resources -> Float -> Mat4 -> Level -> Dict Int Object -> List Entity
+render resources time cameraProj level objects =
+    renderLayers resources cameraProj level
+        ++ renderObjects time cameraProj objects
 
 
-renderLayer : Resources -> Mat4 -> Layer -> Float -> Entity
-renderLayer resources cameraProj layer zPosition =
+renderLayers : Resources -> Mat4 -> Level -> List Entity
+renderLayers resources cameraProj level =
     let
-        ( x, y ) =
-            Vector2.toTuple layer.position
-
-        position =
-            vec3 x y zPosition
-
         tileSetAsset =
             Assets.tileSet
 
         atlas =
             Resources.getTexture tileSetAsset.name resources
 
-        lut =
-            Resources.getTexture layer.name resources
-
         ( atlasW, atlasH ) =
             Texture.size atlas
 
-        uniforms =
-            { transform = Render.makeTransform position layer.size 0 ( 0.5, 0.5 )
-            , cameraProj = cameraProj
-            , atlas = atlas
-            , lut = lut
-            , atlasSize = Vector2.fromInt atlasW atlasH
-            , layerSize = layer.size
-            , tileSize = tileSize
-            }
+        renderer : Layer -> Entity
+        renderer layer =
+            let
+                lut =
+                    Resources.getTexture layer.name resources
+
+                uniforms =
+                    { transform = Render.makeTransform layer.position layer.size 0 ( 0.5, 0.5 )
+                    , cameraProj = cameraProj
+                    , atlas = atlas
+                    , lut = lut
+                    , atlasSize = Vector2.fromInt atlasW atlasH
+                    , layerSize = layer.size
+                    , tileSize = tileSize
+                    }
+            in
+                Render.toEntity (TiledRect uniforms)
     in
-        Render.toEntity (TiledRect uniforms)
+        level.layers
+            -- |> List.filter .isVisible -- TODO Consider layer visibility
+            |> List.map renderer
 
 
 {-| Render objects while discarding "invisibles" (obstacles and triggers)

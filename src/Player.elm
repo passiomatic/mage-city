@@ -1,6 +1,6 @@
 module Player exposing
     ( spawn
-    , tick
+    , update
     , render
     , objectId
     )
@@ -19,6 +19,7 @@ import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Player)
 import Bitwise exposing (or)
 import Assets
+import Model exposing (Model)
 
 
 objectId =
@@ -102,14 +103,14 @@ spawn resources position =
 
 {-| Called on every update cycle by the game engine
 -}
-tick : Float -> Keyboard.State -> Object -> Player -> Object
-tick dt keys object player =
+update : Model -> Object -> Player -> Object
+update model object player =
     let
         direction =
-            Keyboard.arrowsDirection keys
+            Keyboard.arrowsDirection model.keys
 
-        {x, y} =
-            Keyboard.arrows keys
+        { x, y } =
+            Keyboard.arrows model.keys
 
         velocty =
             Vector2.scale walkSpeed (Vector2.fromInt x y)

@@ -5,6 +5,14 @@
          "height":32,
          "name":"Ground",
          "opacity":0.970000028610229,
+         "properties":
+            {
+             "z":0.1
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -16,6 +24,14 @@
          "height":32,
          "name":"Ground Deco",
          "opacity":1,
+         "properties":
+            {
+             "z":0.2
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -27,6 +43,14 @@
          "height":32,
          "name":"Entrance",
          "opacity":1,
+         "properties":
+            {
+             "z":0.3
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -38,6 +62,14 @@
          "height":32,
          "name":"Entrance Deco",
          "opacity":1,
+         "properties":
+            {
+             "z":0.4
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -49,6 +81,14 @@
          "height":32,
          "name":"Trees",
          "opacity":1,
+         "properties":
+            {
+             "z":0.5
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -60,6 +100,14 @@
          "height":32,
          "name":"Leaves 1",
          "opacity":1,
+         "properties":
+            {
+             "z":0.6
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -71,6 +119,14 @@
          "height":32,
          "name":"Leaves 2",
          "opacity":1,
+         "properties":
+            {
+             "z":0.7
+            },
+         "propertytypes":
+            {
+             "z":"float"
+            },
          "type":"tilelayer",
          "visible":true,
          "width":16,
@@ -359,17 +415,6 @@
          "name":"Spawns",
          "objects":[
                 {
-                 "height":32,
-                 "id":45,
-                 "name":"Crate",
-                 "rotation":0,
-                 "type":"Crate",
-                 "visible":true,
-                 "width":32,
-                 "x":320,
-                 "y":576
-                }, 
-                {
                  "height":16,
                  "id":55,
                  "name":"ChangeLevel",
@@ -396,7 +441,7 @@
                  "type":"Player",
                  "visible":true,
                  "width":32,
-                 "x":200,
+                 "x":312,
                  "y":920
                 }],
          "opacity":1,
@@ -421,19 +466,19 @@
                          "y":0
                         }, 
                         {
-                         "x":192,
+                         "x":108.972972972973,
                          "y":-24
                         }, 
                         {
-                         "x":264,
+                         "x":149.837837837838,
                          "y":80
                         }, 
                         {
-                         "x":72,
+                         "x":40.8648648648649,
                          "y":168
                         }, 
                         {
-                         "x":-32,
+                         "x":-18.1621621621622,
                          "y":88
                         }],
                  "rotation":0,
@@ -441,18 +486,18 @@
                  "visible":true,
                  "width":0,
                  "x":152,
-                 "y":136
+                 "y":600
                 }, 
                 {
                  "height":32,
                  "id":58,
-                 "name":"Npc 1",
+                 "name":"Citizen1",
                  "rotation":0,
                  "type":"Npc",
                  "visible":true,
                  "width":32,
-                 "x":272,
-                 "y":904
+                 "x":136,
+                 "y":584
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -461,7 +506,7 @@
          "x":0,
          "y":0
         }],
- "nextobjectid":62,
+ "nextobjectid":66,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tileheight":32,

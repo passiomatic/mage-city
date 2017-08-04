@@ -1,11 +1,11 @@
 module Npc
     exposing
         ( spawn
-        , tick
+        , update
         , render
         )
 
-{-| NPC (Non-Player Character) game object implementation.
+{-| NPC (Non-Player Character) game object implementation
 -}
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
@@ -18,9 +18,12 @@ import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Category(..), Npc)
+import Object exposing (Object, Category(..), Ai(..), Npc)
 import Assets
-
+import Bitwise exposing (or)
+import Model exposing (Model)
+import Dict exposing (Dict)
+import Tiled exposing (Placeholder, Geometry(..))
 
 walkFramesNorth =
     ( 12, 3, 0.6 )
@@ -45,6 +48,11 @@ idleFrames =
 shadowSpriteIndex =
     3
 
+
+walkSpeed =
+    60
+
+
 zPosition =
     0.33 -- Just behind the player
 
@@ -55,6 +63,32 @@ spriteSize =
 
 collisionSize =
     vec2 26 30
+
+
+collisionBitMask =
+    Object.collisionObstacleCategory
+        |> or Object.collisionPlayerCategory
+
+
+-- testPath =
+--     [ vec2 200 150, vec2 200 350, vec2 300 310, vec2 300 100  ]
+
+
+-- spawn : Resources -> Int -> String -> Vec2 -> Maybe Object
+-- spawn resources id name position =
+--     let
+--         spawner =
+--             spawnNpc resources id name position
+--     in
+--         case name of
+--             "Citizen1" ->
+--                 Just (spawner (FollowPath testPath))
+--
+--             "Citizen2" ->
+--                 Just (spawner Stand)
+--
+--             _ ->
+--                 Debug.log ("Cannot spawn object " ++ name ++ ", skipped") Nothing
 
 
 spawn : Resources -> Int -> String -> Vec2 -> Object
@@ -70,7 +104,7 @@ spawn resources id name position =
             NpcCategory
                 { atlas = atlas
                 , velocity = Vector2.zero
-                , targetPosition = position
+                , ai = Spawned
                 }
     in
         { category = category
@@ -79,7 +113,7 @@ spawn resources id name position =
         , position = position
         , collisionSize = collisionSize
         , collisionCategory = Object.collisionObjectCategory
-        , collisionBitMask = 0 -- FIXME
+        , collisionBitMask = collisionBitMask
         }
 
 
@@ -89,12 +123,57 @@ spawn resources id name position =
 
 {-| Called on every update cycle by the game engine
 -}
-tick : Float -> Object -> Npc -> Object
-tick dt object npc =
-    -- Figure out next NPC position
-    { object
-        | position = Vector2.add object.position (Vector2.scale dt npc.velocity)
-    }
+update : Model -> Object -> Npc -> Object
+update ( { level } as model ) ( { position, name } as object ) npc =
+
+    let
+        newNpc =
+            case npc.ai of
+                Spawned ->
+                    { npc | ai = resolveAi level.placeholders name }
+
+                Stand ->
+                    { npc | velocity = Vector2.zero }
+
+                FollowPath points ->
+                    let
+                        (newPoints, newVelocity) =
+                            Object.followPath walkSpeed points position
+                    in
+                        { npc
+                        | ai = FollowPath newPoints
+                        , velocity = newVelocity
+                        }
+    in
+        { object | category = NpcCategory newNpc }
+
+
+forestPath1 =
+    57
+
+{-| Different NPC's have different AI
+-}
+resolveAi : Dict Int Placeholder -> String -> Ai
+resolveAi placeholders name =
+    case name of
+        "Citizen1" ->
+            Dict.get forestPath1 placeholders
+                |> unwrapAi
+
+        _ ->
+            Stand
+
+unwrapAi : Maybe Placeholder -> Ai
+unwrapAi placeholder =
+    Maybe.withDefault Stand ( Maybe.map (\placeholder ->
+        case placeholder.geometry of
+            PolygonGeometry path ->
+                FollowPath path.points
+
+            _ ->
+                Stand
+        ) placeholder )
+
 
 
 
@@ -145,7 +224,6 @@ renderNpc time cameraProj position ({ atlas } as npc) =
 
 resolveFrames : Npc -> (Int, Int, Float)
 resolveFrames npc =
-
     case Vector2.toDirection npc.velocity of
         North ->
             walkFramesNorth
