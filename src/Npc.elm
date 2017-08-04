@@ -70,27 +70,6 @@ collisionBitMask =
         |> or Object.collisionPlayerCategory
 
 
--- testPath =
---     [ vec2 200 150, vec2 200 350, vec2 300 310, vec2 300 100  ]
-
-
--- spawn : Resources -> Int -> String -> Vec2 -> Maybe Object
--- spawn resources id name position =
---     let
---         spawner =
---             spawnNpc resources id name position
---     in
---         case name of
---             "Citizen1" ->
---                 Just (spawner (FollowPath testPath))
---
---             "Citizen2" ->
---                 Just (spawner Stand)
---
---             _ ->
---                 Debug.log ("Cannot spawn object " ++ name ++ ", skipped") Nothing
-
-
 spawn : Resources -> Int -> String -> Vec2 -> Object
 spawn resources id name position =
     let
@@ -175,9 +154,8 @@ unwrapAi placeholder =
         ) placeholder )
 
 
-
-
 -- RENDERING
+
 
 render : Float -> Mat4 -> Object -> Npc -> List Entity
 render time cameraProj { position } ({ atlas } as npc) =
