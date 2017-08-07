@@ -26,8 +26,9 @@ import Npc
 import Dict exposing (Dict)
 import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Assets
+import Text
 import Model exposing (Model)
-
+import Camera
 
 -- CREATION
 
@@ -195,19 +196,32 @@ resolveNpcCollisions dt npcObject npc objects =
 
 -- RENDERING
 
+fontAsset =
+    Assets.font
+
+tileSetAsset =
+    Assets.tileSet
+
+uiCamera =
+    Camera.makeCamera (vec2 400 300) Vector2.zero
 
 render : Resources -> Float -> Mat4 -> Level -> Dict Int Object -> List Entity
 render resources time cameraProj level objects =
-    renderLayers resources cameraProj level
-        ++ renderObjects time cameraProj objects
+    let
+        cameraProj2 =
+            Camera.view (vec2 400 300) uiCamera
+
+        atlas =
+            Resources.getTexture fontAsset.name resources
+    in
+        renderLayers resources cameraProj level
+            ++ renderObjects time cameraProj objects
+            ++ Text.renderText time cameraProj2 (vec3 -30 -150 0.8) atlas "42/99"
 
 
 renderLayers : Resources -> Mat4 -> Level -> List Entity
 renderLayers resources cameraProj level =
     let
-        tileSetAsset =
-            Assets.tileSet
-
         atlas =
             Resources.getTexture tileSetAsset.name resources
 

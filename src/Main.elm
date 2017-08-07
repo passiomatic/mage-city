@@ -100,19 +100,36 @@ update msg model =
             )
 
 
+{-| Return the player object
+-}
+getPlayer : Dict Int Object -> Maybe Object
+getPlayer objects =
+    Dict.get Player.objectId objects
+
+
 changeLevel : Level -> Model -> Model
 changeLevel level model =
     let
-        objects = Scene.spawnObjects model.resources level.placeholders
+        objects =
+            Scene.spawnObjects model.resources level.placeholders
+
+        camera =
+            case getPlayer objects of
+                Just playerObject ->
+                    -- Center camera on player
+                    Camera.moveTo playerObject.position model.camera
+                Nothing ->
+                    model.camera
     in
     { model
         | objects = objects
         , level = level
+        , camera = camera
     }
 
 
 tick : Float -> Model -> Model
-tick dt model =
+tick dt ( {objects, camera } as model ) =
 
     let
         time =
@@ -120,17 +137,18 @@ tick dt model =
 
         -- Update all game objects
         newObjects =
-            model.objects
+            objects
                 |> Scene.update model
                 |> Scene.resolveCollisions dt
 
         -- Adjust camera to the resolved target position
         newCamera =
-            case Dict.get Player.objectId newObjects of
+            case getPlayer newObjects of
                 Just target ->
-                    updateCamera dt target.position model.camera
+                    updateCamera dt target.position camera
                 Nothing ->
-                    model.camera
+                    camera
+
     in
         { model
         | objects = newObjects
@@ -193,10 +211,7 @@ relativeTo referencePosition referenceSize position =
 gameAssets =
     let
         assets =
-            [ List.singleton Assets.tileSet
-            , List.singleton Assets.misc
-            , List.singleton Assets.player
-            , List.singleton Assets.npc
+            [ Assets.all
             ]
     in
         -- Add all the assets from levels
@@ -219,7 +234,8 @@ renderPlaying { objects, resources, time, viewport, camera, level } =
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =
-            Vector2.scale vieportScale viewport |> Vector2.toTuple
+            Vector2.scale vieportScale viewport
+                |> Vector2.toTuple
     in
         Render.toHtml ( floor w, floor h ) scene
 

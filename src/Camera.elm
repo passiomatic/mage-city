@@ -1,4 +1,4 @@
-module Camera exposing (Camera, fixedArea, getViewSize, view, moveBy, moveTo, follow)
+module Camera exposing (Camera, makeCamera, getViewSize, view, moveBy, moveTo, follow)
 
 {-| This provides a basic camera
 -}
@@ -29,8 +29,8 @@ This means that you probably want to specify the area property like this:
 This would show 16 by 10 units _if_ the game is displayed in a 16:10 viewport. However,
 in a 4:3 viewport it would show sqrt(16*10*4/3)=14.6 by sqrt(16*10*3/4)=10.95 units
 -}
-fixedArea : Vec2 -> Vec2 -> Camera
-fixedArea size position =
+makeCamera : Vec2 -> Vec2 -> Camera
+makeCamera size position =
     let
         ( w, h ) =
             Vector2.toTuple size
@@ -54,7 +54,8 @@ view viewportSize camera =
     let
         -- TODO Use vec2
 
-        viewportSize_ = Vector2.toTuple viewportSize
+        viewportSize_ =
+            Vector2.toTuple viewportSize
 
         ( x, y ) =
             camera.position

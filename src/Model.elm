@@ -21,8 +21,10 @@ import Dict exposing (Dict)
 viewportSize =
     vec2 400 300 -- Old school 4:3 aspect ratio
 
+
 startLevel =
     Forest1.level
+
 
 type GameState
     = Loading
@@ -48,7 +50,7 @@ model =
     , pressedKeys = []
     , time = 0
     , viewport = viewportSize
-    , camera = Camera.fixedArea viewportSize (vec2 250 140)
+    , camera = Camera.makeCamera viewportSize Vector2.zero
     , level = startLevel
     , state = Loading
     }
