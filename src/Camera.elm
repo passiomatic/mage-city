@@ -1,14 +1,10 @@
-module Camera exposing (Camera, makeCamera, getViewSize, view, moveBy, moveTo, follow)
+module Camera exposing (Camera, makeCamera, view, moveBy, moveTo, follow)
 
 {-| This provides a basic camera
 -}
 
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Matrix4 as Matrix4 exposing (Mat4)
-
-import Vector2Extra as Vector2 exposing (fromInt)
-import Helpers as Helpers exposing (..)
-
 
 {-|
 A camera represents how to render the virtual world. It's essentially a
@@ -40,55 +36,43 @@ makeCamera size position =
         }
 
 
--- TODO remove me
-scale : Float -> Float2 -> Float2
-scale a ( x, y ) =
-    ( a * x, a * y )
-
-
 {-| Calculate the matrix transformation that represents how to transform the
 camera back to the origin. The result of this is used in the vertex shader.
 -}
 view : Vec2 -> Camera -> Mat4
 view viewportSize camera =
     let
-        -- TODO Use vec2
-
-        viewportSize_ =
+        ( w, h ) =
             Vector2.toTuple viewportSize
 
         ( x, y ) =
-            camera.position
-                |> snapPosition
-                |> Vector2.toTuple
+            camera.position |> snapPosition |> Vector2.toTuple
 
-        ( w, h ) =
-            scale 0.5 (getViewSize viewportSize_ camera)
+        -- Calculate the viewport size in game units and halve it
+        ( w_, h_ ) =
+            ( sqrt ( camera.area * w / h ) / 2
+            , sqrt ( camera.area * h / w ) / 2 )
 
         ( l, r, d, u ) =
-            ( x - w, x + w, y - h, y + h )
+            ( x - w_, x + w_, y - h_, y + h_ )
     in
         Matrix4.makeOrtho2D l r d u
 
 
 {-| Snap camera position to nearest integer value. This is important when passing
-camera to camera transformation matrix, since passing unrounded value will cause artifacts
+camera to transformation matrix, since passing unrounded values will cause artifacts
 on the final scene.
 -}
 snapPosition : Vec2 -> Vec2
 snapPosition position =
     let
-        (x, y) = Vector2.toTuple position
+        rounder =
+            floor >> toFloat
+
+        (x, y) =
+            Vector2.toTuple position
     in
-        fromInt (floor x) (floor y)
-
-
-{-| Get the width and height in game units
--}
-getViewSize : ( Float, Float ) -> Camera -> ( Float, Float )
-getViewSize ( w, h ) { area } =
-    -- TODO convert into Vec2
-    ( sqrt (area * w / h), sqrt (area * h / w) )
+        vec2 (rounder x) (rounder y)
 
 
 {-| Move a camera by the given vector *relative* to the camera.
@@ -112,10 +96,10 @@ moveTo position camera =
 follow : Float -> Float -> Vec2 -> Camera -> Camera
 follow speed dt targetPosition ({ position } as camera) =
     let
-        vectorToTarget =
+        targetVector =
             Vector2.sub targetPosition position
 
         newPosition =
-            Vector2.add position (Vector2.scale (speed * dt) vectorToTarget)
+            Vector2.add position (Vector2.scale (speed * dt) targetVector)
     in
         { camera | position = newPosition }
