@@ -1,4 +1,4 @@
-module Vector2Extra exposing (zero, fromInt, toDirection)
+module Vector2Extra exposing (zero, snap, fromInt, toDirection)
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
@@ -11,6 +11,21 @@ zero =
 fromInt : Int -> Int -> Vec2
 fromInt x y =
     vec2 (toFloat x) (toFloat y)
+
+
+{-| Snap value to nearest integer value
+-}
+snap : Vec2 -> Vec2
+snap value =
+    let
+        (x, y) =
+            Vector2.toTuple value
+    in
+        vec2 (rounder x) (rounder y)
+
+
+rounder =
+    floor >> toFloat
 
 
 toDirection : Vec2 -> Direction

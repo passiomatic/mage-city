@@ -189,28 +189,27 @@ isColliding rect1 object =
     let
         rect2 = toRectangle object
     in
-        if rect1.x < rect2.x + rect2.w &&
-           rect1.x + rect1.w > rect2.x &&
-           rect1.y < rect2.y + rect2.h &&
-           rect1.h + rect1.y > rect2.y then
-               True
-        else
-               False
+        rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.h + rect1.y > rect2.y
+
 
 toRectangle : Object -> Rectangle
 toRectangle object =
     let
-        (cx, cy) =
+        ( cx, cy ) =
             Vector2.toTuple object.position
 
-        (w, h) =
+        ( w, h ) =
             Vector2.toTuple object.collisionSize
 
         startingPoint centerPoint length =
-            centerPoint - (length / 2)
+            centerPoint - ( length / 2 )
 
         x =
             startingPoint cx w
+
         y =
             startingPoint cy h
     in

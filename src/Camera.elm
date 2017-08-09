@@ -5,6 +5,7 @@ module Camera exposing (Camera, makeCamera, view, moveBy, moveTo, follow)
 
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Matrix4 as Matrix4 exposing (Mat4)
+import Vector2Extra as Vector2
 
 {-|
 A camera represents how to render the virtual world. It's essentially a
@@ -45,8 +46,12 @@ view viewportSize camera =
         ( w, h ) =
             Vector2.toTuple viewportSize
 
+        -- Snap camera position to nearest pixel, since passing unrounded
+        --   values will cause artifacts on the final scene
         ( x, y ) =
-            camera.position |> snapPosition |> Vector2.toTuple
+            camera.position
+                |> Vector2.snap
+                |> Vector2.toTuple
 
         -- Calculate the viewport size in game units and halve it
         ( w_, h_ ) =
@@ -57,22 +62,6 @@ view viewportSize camera =
             ( x - w_, x + w_, y - h_, y + h_ )
     in
         Matrix4.makeOrtho2D l r d u
-
-
-{-| Snap camera position to nearest integer value. This is important when passing
-camera to transformation matrix, since passing unrounded values will cause artifacts
-on the final scene.
--}
-snapPosition : Vec2 -> Vec2
-snapPosition position =
-    let
-        rounder =
-            floor >> toFloat
-
-        (x, y) =
-            Vector2.toTuple position
-    in
-        vec2 (rounder x) (rounder y)
 
 
 {-| Move a camera by the given vector *relative* to the camera.
