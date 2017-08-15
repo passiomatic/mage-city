@@ -129,7 +129,7 @@ changeLevel level model =
 
 
 tick : Float -> Model -> Model
-tick dt ( {objects, camera } as model ) =
+tick dt ( {objects, viewport, camera } as model ) =
 
     let
         time =
@@ -145,7 +145,7 @@ tick dt ( {objects, camera } as model ) =
         newCamera =
             case getPlayer newObjects of
                 Just target ->
-                    updateCamera dt target.position camera
+                    updateCamera dt viewport target.position camera
                 Nothing ->
                     camera
 
@@ -157,54 +157,60 @@ tick dt ( {objects, camera } as model ) =
         }
 
 
+-- CAMERA
+
+
 minDistanceFromEdge =
     70
 
 
-updateCamera : Float -> Vec2 -> Camera -> Camera
-updateCamera dt targetPosition camera =
-    Camera.follow 0.95 dt (nextCameraPosition camera.position targetPosition) camera
+cameraSpeed =
+    0.95
 
 
-nextCameraPosition cameraPosition targetPosition =
-
+updateCamera : Float -> Vec2 -> Vec2 -> Camera -> Camera
+updateCamera dt viewport targetPosition camera =
     let
-        (w, h) = Vector2.toTuple viewportSize
+        ( w, h ) =
+            Vector2.toTuple viewport
 
-        posX = Vector2.getX cameraPosition
-        posY = Vector2.getY cameraPosition
+        ( cameraX, cameraY ) =
+            Vector2.toTuple camera.position
 
-        -- Rel pos
-        (x, y) =
-            --Debug.log "x,y" (relativeTo cameraPosition  viewportSize targetPosition |> Vector2.toTuple)
-            relativeTo cameraPosition viewportSize targetPosition |> Vector2.toTuple
+        ( x, y ) =
+            relativePosition camera.position viewport targetPosition
+                |> Vector2.toTuple
 
         -- Check if on west/east edge
         newX = if x < minDistanceFromEdge then
-            posX - minDistanceFromEdge
+            cameraX - minDistanceFromEdge
         else if x > (w - minDistanceFromEdge) then
-            posX + minDistanceFromEdge
+            cameraX + minDistanceFromEdge
         else
-            posX
+            cameraX
 
         -- Check if on north/south edge
         newY = if y < minDistanceFromEdge then
-            posY - minDistanceFromEdge
+            cameraY - minDistanceFromEdge
         else if y > (h - minDistanceFromEdge) then
-            posY + minDistanceFromEdge
+            cameraY + minDistanceFromEdge
         else
-            posY
+            cameraY
     in
-        vec2 newX newY
+        Camera.follow cameraSpeed dt (vec2 newX newY) camera
 
 
-relativeTo referencePosition referenceSize position =
+relativePosition : Vec2 -> Vec2 -> Vec2 -> Vec2
+relativePosition referencePosition referenceSize position =
     let
         size = Vector2.scale 0.5 referenceSize
     in
         referencePosition
             |> Vector2.sub position
             |> Vector2.add size
+
+
+-- ASSETS
 
 
 -- All the game assets (images, sounds, etc.)
