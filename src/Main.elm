@@ -119,13 +119,6 @@ update msg model =
             )
 
 
-{-| Return the player object
--}
-getPlayer : Dict Int Object -> Maybe Object
-getPlayer objects =
-    Dict.get Player.objectId objects
-
-
 changeLevel : Level -> Model -> Model
 changeLevel level model =
     let
@@ -133,7 +126,7 @@ changeLevel level model =
             Scene.spawnObjects model.resources level.placeholders
 
         camera =
-            case getPlayer objects of
+            case Object.player objects of
                 Just playerObject ->
                     -- Center camera on player
                     Camera.moveTo playerObject.position model.camera
@@ -162,7 +155,7 @@ tick dt ( {objects, viewport, camera } as model ) =
 
         -- Adjust camera to the resolved target position
         newCamera =
-            case getPlayer newObjects of
+            case Object.player newObjects of
                 Just target ->
                     updateCamera dt viewport target.position camera
                 Nothing ->

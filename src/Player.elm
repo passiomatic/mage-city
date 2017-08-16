@@ -2,7 +2,6 @@ module Player exposing
     ( spawn
     , update
     , render
-    , objectId
     )
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
@@ -22,8 +21,7 @@ import Assets
 import Model exposing (Model)
 
 
-objectId =
-    0 -- Hardcoded id to grab the player object later
+
 
 walkFramesNorth =
     (12, 3, 0.6)
@@ -89,7 +87,7 @@ spawn resources position =
                 }
     in
         { category = category
-        , id = objectId
+        , id = Object.playerId
         , name = "Player"
         , position = position
         , collisionSize = collisionSize

@@ -14,7 +14,10 @@ module Object exposing
     , collisionPlayerCategory
     , collisionObstacleCategory
     , collisionTriggerCategory
+    , player
+    , playerId
     )
+
 
 import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
@@ -22,6 +25,7 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Vector2Extra as Vector2
 import WebGL.Texture as Texture exposing (Texture)
 import Bitwise exposing (and)
+import Dict exposing (Dict)
 
 
 {-| The main game object type. See individual file (e.g. Crate.elm)
@@ -111,6 +115,19 @@ type alias Rectangle =
     , w : Float
     , h : Float
     }
+
+-- MISC
+
+
+playerId =
+    0 -- Hardcoded id to grab the player object later
+
+
+{-| Return the player object
+-}
+player : Dict Int Object -> Maybe Object
+player objects =
+    Dict.get playerId objects
 
 
 -- MOVEMENT
