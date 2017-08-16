@@ -7,6 +7,7 @@ import Window
 import Keyboard.Extra as Keyboard
 import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
+import Vector2Extra as Vector2
 import WebGL.Texture as Texture exposing (Texture)
 import Render
 import Scene
@@ -22,23 +23,27 @@ import Dict exposing (Dict)
 import Assets
 import Model exposing (Model, GameState(..))
 
+
 levels =
     [ Forest1.level
     --, City1.level
     ]
 
--- TODO remove me, use Model.viewportSize
+
 startLevel =
     Forest1.level
 
 
--- TODO remove me, use Model.viewportSize
 viewportSize =
-    vec2 400 300 -- Old school 4:3 aspect ratio
+    vec2 400 300
 
 
 vieportScale =
     2.0
+
+
+camera =
+    Camera.makeCamera viewportSize Vector2.zero
 
 
 -- MSG
@@ -54,10 +59,24 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    Model.model
+    model
         ! [ getScreenSize
           , Cmd.map Resources (Resources.loadAssets gameAssets)
           ]
+
+
+model : Model
+model =
+    { objects = Dict.empty
+    , resources = Resources.initialModel
+    , pressedKeys = []
+    , time = 0
+    , viewport = viewportSize
+    , camera = camera
+    , uiCamera = camera
+    , level = startLevel
+    , state = Loading
+    }
 
 
 -- UPDATE
@@ -70,7 +89,7 @@ update msg model =
             changeLevel level model ! []
 
         ScreenSize { width, height } ->
-            --{ model | screen = ( width, height ) } ! []
+            --{ model | viewport = Vector2.fromInt width height } ! []
             model ! []
 
         Tick dt ->
@@ -230,17 +249,14 @@ gameAssets =
 
 
 renderPlaying : Model -> Html msg
-renderPlaying { objects, resources, time, viewport, camera, level } =
+renderPlaying model =
     let
-        cameraProj =
-            Camera.view viewport camera
-
         scene =
-            Scene.render resources time cameraProj level objects
+            Scene.render model
 
         -- Calculate scaled WebGL canvas size
         ( w, h ) =
-            Vector2.scale vieportScale viewport
+            Vector2.scale vieportScale model.viewport
                 |> Vector2.toTuple
     in
         Render.toHtml ( floor w, floor h ) scene

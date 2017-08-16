@@ -196,27 +196,30 @@ resolveNpcCollisions dt npcObject npc objects =
 
 -- RENDERING
 
+
 fontAsset =
     Assets.font
+
 
 tileSetAsset =
     Assets.tileSet
 
-uiCamera =
-    Camera.makeCamera (vec2 400 300) Vector2.zero
 
-render : Resources -> Float -> Mat4 -> Level -> Dict Int Object -> List Entity
-render resources time cameraProj level objects =
+render : Model -> List Entity
+render ( { resources, time, viewport, level, objects, camera, uiCamera } as model ) =
     let
-        cameraProj2 =
-            Camera.view (vec2 400 300) uiCamera
+        cameraProj =
+            Camera.view viewport camera
+
+        uiCameraProj =
+            Camera.view viewport uiCamera
 
         atlas =
             Resources.getTexture fontAsset.name resources
     in
         renderLayers resources cameraProj level
             ++ renderObjects time cameraProj objects
-            ++ Text.renderText time cameraProj2 (vec3 -30 -150 0.8) atlas "42/99"
+            ++ Text.renderText time uiCameraProj (vec3 -30 -150 0.8) atlas "42/99"
 
 
 renderLayers : Resources -> Mat4 -> Level -> List Entity

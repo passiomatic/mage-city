@@ -224,19 +224,9 @@ renderOptions =
     ]
 
 
-toHtml : (Int, Int) -> List Entity -> Html msg
-toHtml (w, h) entities =
-    Html.div
-        [ Attr.id "mage-city"
-        , Attr.style
-            [ ( "width", toString w ++ "px" )
-            , ( "height", toString h ++ "px" )
-            , ( "margin", "auto" )
-            ]
-        ]
-        [
-            WebGL.toHtmlWith
-                renderOptions
-                [ Attr.width w, Attr.height h ]
-                entities
-        ]
+toHtml : ( Int, Int ) -> List Entity -> Html msg
+toHtml ( w, h ) entities =
+    WebGL.toHtmlWith
+        renderOptions
+        [ Attr.width w, Attr.height h ]
+        entities
