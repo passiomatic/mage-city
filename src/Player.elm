@@ -12,15 +12,11 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import Math.Matrix4 exposing (Mat4)
-
-import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Player)
 import Bitwise exposing (or)
-import Assets
+import Assets exposing (Assets)
 import Model exposing (Model)
-
-
 
 
 walkFramesNorth =
@@ -70,14 +66,14 @@ collisionBitMask =
      |> or Object.collisionObjectCategory
 
 
-spawn : Resources -> Vec2 -> Object
-spawn resources position =
+spawn : Assets -> Vec2 -> Object
+spawn assets position =
     let
         playerAsset =
             Assets.player
 
         atlas =
-            Resources.getTexture playerAsset.name resources
+            Assets.texture playerAsset.name assets
 
         category =
             PlayerCategory

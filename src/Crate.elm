@@ -14,10 +14,9 @@ import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
-import Resources as Resources exposing (Asset, Resources)
+import Assets exposing (Assets)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Crate)
-import Assets
 
 
 zPosition =
@@ -32,14 +31,14 @@ collisionSize =
     vec2 26 30
 
 
-spawn : Resources -> Int -> String -> Vec2 -> Object
-spawn resources id name position =
+spawn : Assets -> Int -> String -> Vec2 -> Object
+spawn assets id name position =
     let
         miscAsset =
             Assets.misc
 
         atlas =
-            Resources.getTexture miscAsset.name resources
+            Assets.texture miscAsset.name assets
 
         category =
             CrateCategory

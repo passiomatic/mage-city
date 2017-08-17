@@ -16,14 +16,14 @@ import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
-import Resources as Resources exposing (Asset, Resources)
 import Render exposing (Uniform(..))
 import Object exposing (Object, Category(..), Ai(..), Npc)
-import Assets
+import Assets exposing (Assets)
 import Bitwise exposing (or)
 import Model exposing (Model)
 import Dict exposing (Dict)
 import Tiled exposing (Placeholder, Geometry(..))
+
 
 walkFramesNorth =
     ( 12, 3, 0.6 )
@@ -70,14 +70,14 @@ collisionBitMask =
         |> or Object.collisionPlayerCategory
 
 
-spawn : Resources -> Int -> String -> Vec2 -> Object
-spawn resources id name position =
+spawn : Assets -> Int -> String -> Vec2 -> Object
+spawn assets id name position =
     let
         npcAsset =
             Assets.npc
 
         atlas =
-            Resources.getTexture npcAsset.name resources
+            Assets.texture npcAsset.name assets
 
         category =
             NpcCategory

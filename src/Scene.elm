@@ -9,7 +9,7 @@ module Scene
 {-| Scene creation, updating and rendering functions
 -}
 
-import Resources as Resources exposing (Resources, Asset)
+import Assets exposing (Assets)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4)
@@ -33,12 +33,12 @@ import Camera
 -- CREATION
 
 
-spawnObjects : Resources -> Dict Int Placeholder -> Dict Int Object
-spawnObjects resources placeholders =
+spawnObjects : Assets -> Dict Int Placeholder -> Dict Int Object
+spawnObjects assets placeholders =
     let
         spawner : Int -> Placeholder -> (Dict Int Object -> Dict Int Object)
         spawner _ placeholder =
-            case spawnObject resources placeholder of
+            case spawnObject assets placeholder of
                 Just object ->
                     Dict.insert object.id object
 
@@ -48,8 +48,8 @@ spawnObjects resources placeholders =
         Dict.foldl spawner Dict.empty placeholders
 
 
-spawnObject : Resources -> Placeholder -> Maybe Object
-spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
+spawnObject : Assets -> Placeholder -> Maybe Object
+spawnObject assets ({ categoryName, id, name, geometry } as placeholder) =
     case ( categoryName, geometry ) of
         ( "Trigger", RectangleGeometry { position, size } ) ->
             Just
@@ -74,13 +74,13 @@ spawnObject resources ({ categoryName, id, name, geometry } as placeholder) =
                 }
 
         ( "Crate", RectangleGeometry { position } ) ->
-            Just (Crate.spawn resources id name position)
+            Just (Crate.spawn assets id name position)
 
         ( "Npc", RectangleGeometry { position } ) ->
-            Just (Npc.spawn resources id name position)
+            Just (Npc.spawn assets id name position)
 
         ( "Player", RectangleGeometry { position } ) ->
-            Just (Player.spawn resources position)
+            Just (Player.spawn assets position)
 
         _ ->
             Debug.log ("Cannot spawn object with category " ++ categoryName ++ ", skipped") Nothing
@@ -206,7 +206,7 @@ tileSetAsset =
 
 
 render : Model -> List Entity
-render ( { resources, time, viewport, level, objects, camera, uiCamera } as model ) =
+render ( { assets, time, viewport, level, objects, camera, uiCamera } as model ) =
     let
         cameraProj =
             Camera.view viewport camera
@@ -215,18 +215,18 @@ render ( { resources, time, viewport, level, objects, camera, uiCamera } as mode
             Camera.view viewport uiCamera
 
         atlas =
-            Resources.getTexture fontAsset.name resources
+            Assets.texture fontAsset.name assets
     in
-        renderLayers resources cameraProj level
+        renderLayers assets cameraProj level
             ++ renderObjects time cameraProj objects
             ++ Text.renderText time uiCameraProj (vec3 -30 -150 0.8) atlas "42/99"
 
 
-renderLayers : Resources -> Mat4 -> Level -> List Entity
-renderLayers resources cameraProj level =
+renderLayers : Assets -> Mat4 -> Level -> List Entity
+renderLayers assets cameraProj level =
     let
         atlas =
-            Resources.getTexture tileSetAsset.name resources
+            Assets.texture tileSetAsset.name assets
 
         ( atlasW, atlasH ) =
             Texture.size atlas
@@ -235,7 +235,7 @@ renderLayers resources cameraProj level =
         renderer layer =
             let
                 lut =
-                    Resources.getTexture layer.name resources
+                    Assets.texture layer.name assets
 
                 uniforms =
                     { transform = Render.makeTransform layer.position layer.size 0 ( 0.5, 0.5 )

@@ -12,6 +12,7 @@ import Camera exposing (Camera)
 import Object exposing (Object)
 import Levels.Forest1 as Forest1
 import Dict exposing (Dict)
+import Assets exposing (Assets)
 
 
 type GameState
@@ -21,12 +22,12 @@ type GameState
 
 type alias Model =
     { objects: Dict Int Object
-    , resources : Resources
+    , assets : Assets
     , pressedKeys : List Key
     , time : Float
     , viewport : Vec2
     , camera : Camera
-    , uiCamera : Camera    
+    , uiCamera : Camera
     , level : Level
     , state : GameState
     }

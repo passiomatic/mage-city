@@ -5,23 +5,19 @@ import Task
 import AnimationFrame
 import Window
 import Keyboard.Extra as Keyboard
-import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Vector2Extra as Vector2
-import WebGL.Texture as Texture exposing (Texture)
 import Render
 import Scene
 import Tiled exposing (Level)
 import Camera exposing (Camera)
 import Object exposing (Object)
-import Crate
-import Npc
-import Player
 import Levels.Forest1 as Forest1
 --import Levels.City1 as City1
 import Dict exposing (Dict)
-import Assets
+import Assets exposing (Assets)
 import Model exposing (Model, GameState(..))
+import Messages exposing (Msg(..))
 
 
 levels =
@@ -46,29 +42,19 @@ camera =
     Camera.makeCamera viewportSize Vector2.zero
 
 
--- MSG
-
-type Msg
-    = ScreenSize Window.Size
-    | Tick Float
-    | Resources Resources.Msg
-    | KeyMsg Keyboard.Msg
-      -- Game messages
-    | ChangeLevel Level
-
-
 init : ( Model, Cmd Msg )
 init =
     model
         ! [ getScreenSize
-          , Cmd.map Resources (Resources.loadAssets gameAssets)
+          , Cmd.map AssetMsg (Assets.loadAssets gameAssets)
           ]
 
 
 model : Model
 model =
     { objects = Dict.empty
-    , resources = Resources.initialModel
+    --, resources = Resources.initialModel
+    , assets = Dict.empty
     , pressedKeys = []
     , time = 0
     , viewport = viewportSize
@@ -95,21 +81,20 @@ update msg model =
         Tick dt ->
             (tick dt model) ! []
 
-        Resources msg ->
+        AssetMsg msg ->
             let
-                newResources =
-                    Resources.update msg model.resources
+                newAssets =
+                    Assets.update msg model.assets
             in
-                if Resources.isLoadingComplete gameAssets newResources then
+                if Assets.isLoadingComplete gameAssets newAssets then
                     ({ model
-                        | resources = newResources
+                        | assets = newAssets
                         , state = Playing
                     }
-                        |>
-                            changeLevel startLevel) ! []
+                        |> changeLevel startLevel) ! []
                 else
                     { model
-                        | resources = newResources
+                        | assets = newAssets
                     }
                         ! []
 
@@ -123,7 +108,7 @@ changeLevel : Level -> Model -> Model
 changeLevel level model =
     let
         objects =
-            Scene.spawnObjects model.resources level.placeholders
+            Scene.spawnObjects model.assets level.placeholders
 
         camera =
             case Object.player objects of
