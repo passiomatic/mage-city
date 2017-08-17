@@ -1,6 +1,5 @@
 module Objects.Object exposing
     ( Object
-    , Category
     , Category(..)
     , Ai(..)
     , Crate
