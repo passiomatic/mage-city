@@ -1,4 +1,4 @@
-module Crate
+module Objects.Crate
     exposing
         ( spawn
         , render
@@ -16,7 +16,7 @@ import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Assets exposing (Assets)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Category(..), Crate)
+import Objects.Object as Object exposing (Object, Category(..), Crate)
 
 
 zPosition =

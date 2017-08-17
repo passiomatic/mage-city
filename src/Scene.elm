@@ -19,10 +19,10 @@ import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Tiled exposing (Level, Layer, Placeholder, Geometry(..), tileSize)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Player, Npc, Category(..))
-import Player
-import Crate
-import Npc
+import Objects.Object as Object exposing (Object, Player, Npc, Category(..))
+import Objects.Player as Player
+import Objects.Crate as Crate
+import Objects.Npc as Npc
 import Dict exposing (Dict)
 import Keyboard.Extra as Keyboard exposing (Direction(..))
 import Assets

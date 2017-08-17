@@ -13,8 +13,9 @@ http://doc.mapeditor.org/reference/tmx-map-format/
 import Math.Vector2 exposing (Vec2, vec2)
 import Math.Vector3 exposing (Vec3, vec3)
 import Color exposing (Color)
-import Resources exposing (Asset)
 import Dict exposing (Dict)
+import Assets exposing (AssetDescription)
+
 
 tileSize =
     vec2 32 32
@@ -25,7 +26,7 @@ tileSize =
 type alias Level =
     { name : String
     , background : Color
-    , assets : List Asset
+    , assets : List AssetDescription
     , layers : List Layer
     , placeholders : Dict Int Placeholder
     }

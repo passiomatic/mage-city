@@ -5,11 +5,10 @@ module Model
         )
 
 import Keyboard.Extra as Keyboard exposing (Key)
-import Resources as Resources exposing (Resources, Asset)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Tiled exposing (Level)
 import Camera exposing (Camera)
-import Object exposing (Object)
+import Objects.Object exposing (Object)
 import Levels.Forest1 as Forest1
 import Dict exposing (Dict)
 import Assets exposing (Assets)

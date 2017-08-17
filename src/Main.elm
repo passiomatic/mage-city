@@ -11,7 +11,7 @@ import Render
 import Scene
 import Tiled exposing (Level)
 import Camera exposing (Camera)
-import Object exposing (Object)
+import Objects.Object as Object exposing (Object)
 import Levels.Forest1 as Forest1
 --import Levels.City1 as City1
 import Dict exposing (Dict)

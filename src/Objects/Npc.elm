@@ -1,4 +1,4 @@
-module Npc
+module Objects.Npc
     exposing
         ( spawn
         , update
@@ -17,7 +17,7 @@ import Vector3Extra as Vector3
 import WebGL exposing (Entity)
 import WebGL.Texture as Texture exposing (Texture)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Category(..), Ai(..), Npc)
+import Objects.Object as Object exposing (Object, Category(..), Ai(..), Npc)
 import Assets exposing (Assets)
 import Bitwise exposing (or)
 import Model exposing (Model)

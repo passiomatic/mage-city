@@ -1,4 +1,4 @@
-module Player exposing
+module Objects.Player exposing
     ( spawn
     , update
     , render
@@ -13,7 +13,7 @@ import Vector2Extra as Vector2
 import Vector3Extra as Vector3
 import Math.Matrix4 exposing (Mat4)
 import Render exposing (Uniform(..))
-import Object exposing (Object, Category(..), Player)
+import Objects.Object as Object exposing (Object, Category(..), Player)
 import Bitwise exposing (or)
 import Assets exposing (Assets)
 import Model exposing (Model)

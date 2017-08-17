@@ -1,4 +1,4 @@
-module Object exposing
+module Objects.Object exposing
     ( Object
     , Category
     , Category(..)
