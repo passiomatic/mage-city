@@ -1,6 +1,8 @@
 # Mage City
 
-Mage City is an ongoing learning experiment aiming to recreate the aesthetic and some gameplay elements of 90's Nintendo RPG action games like [_Secret of Mana_][1].
+Mage City was my first foray into the Elm world and aimed to recreate the aesthetic and some gameplay elements of 90's Nintendo RPG action games like [_Secret of Mana_][1]. This project is no longer maintained and I keep it only for historical purposes. 
+
+If you are into Elm game development I've written [Sunny Land][sl] which, I believe, is a much better introduction to the topic.
 
 [Try it out][home].
 
@@ -69,3 +71,4 @@ Mage City contains portions of:
 [8]: http://package.elm-lang.org/packages/Zinggi/elm-game-resources/latest
 [9]: http://elysianangel8.deviantart.com
 [home]: http://lab.passiomatic.com/mage-city/
+[sl]: https://github.com/passiomatic/sunny-land
